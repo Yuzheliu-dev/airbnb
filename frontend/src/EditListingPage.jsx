@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuthContext } from '../context/AuthContext';
-import {
-  createListing,
-  getListingDetail,
-  updateListing,
-} from '../api/listings';
-import { ErrorNotification, SuccessNotification } from '../components/Common/Notification';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
+import * as authApi from '../api/auth';
+
+const AuthContext = createContext(null);
+
+const STORAGE_KEY = 'airbrb_auth';
