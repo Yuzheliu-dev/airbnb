@@ -30,3 +30,13 @@ const baseStyle = {
   const titleStyle = {
     fontWeight: 600,
   };
+
+  const closeButtonStyle = {
+    marginLeft: '0.4rem',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    lineHeight: 1,
+    color: 'inherit',
+  };
