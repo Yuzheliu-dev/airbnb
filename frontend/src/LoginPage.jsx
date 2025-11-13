@@ -22,3 +22,21 @@ export default function LoginPage() {
       e.preventDefault();
       setErrorMsg('');
       setSuccessMsg('');
+      try {
+        await login(email.trim(), password);
+        setSuccessMsg('Logged in successfully!');
+        navigate(fromPath, { replace: true });
+      } catch (err) {
+        setErrorMsg(err.message || 'Failed to login');
+      }
+    };
+  
+    return (
+      <div style={pageWrapperStyle}>
+        <section style={cardShellStyle}>
+          <div style={cardHeaderStyle}>
+            <h1 style={titleStyle}>Welcome back</h1>
+            <p style={subtitleStyle}>
+              Log in to manage your stays and your hosted listings.
+            </p>
+          </div>
