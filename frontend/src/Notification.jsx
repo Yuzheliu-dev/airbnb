@@ -79,4 +79,41 @@ const baseStyle = {
       </div>
     );
   }
-  
+  export function SuccessNotification({ message, onClose }) {
+    if (!message) return null;
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          background: 'linear-gradient(135deg, #ecfdf3, #dcfce7)',
+          border: '1px solid #bbf7d0',
+          color: '#166534',
+        }}
+        role="status"
+      >
+        <div
+          style={{
+            ...iconStyle,
+            backgroundColor: '#dcfce7',
+            color: '#15803d',
+          }}
+        >
+          ✓
+        </div>
+        <div style={contentStyle}>
+          <span style={titleStyle}>Success</span>
+          <span>{message}</span>
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={closeButtonStyle}
+            aria-label="Close success message"
+          >
+            ×
+          </button>
+        )}
+      </div>
+    );
+  }
