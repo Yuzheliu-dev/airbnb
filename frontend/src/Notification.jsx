@@ -40,3 +40,43 @@ const baseStyle = {
     lineHeight: 1,
     color: 'inherit',
   };
+
+  export function ErrorNotification({ message, onClose }) {
+    if (!message) return null;
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          background: 'linear-gradient(135deg, #fef2f2, #fee2e2)',
+          border: '1px solid #fecaca',
+          color: '#b91c1c',
+        }}
+        role="alert"
+      >
+        <div
+          style={{
+            ...iconStyle,
+            backgroundColor: '#fee2e2',
+            color: '#b91c1c',
+          }}
+        >
+          !
+        </div>
+        <div style={contentStyle}>
+          <span style={titleStyle}>Something went wrong</span>
+          <span>{message}</span>
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={closeButtonStyle}
+            aria-label="Close error message"
+          >
+            ×
+          </button>
+        )}
+      </div>
+    );
+  }
+  
