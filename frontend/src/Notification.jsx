@@ -20,3 +20,13 @@ const baseStyle = {
     flexShrink: 0,
     fontSize: '0.9rem',
   };
+  const contentStyle = {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.15rem',
+  };
+  
+  const titleStyle = {
+    fontWeight: 600,
+  };
