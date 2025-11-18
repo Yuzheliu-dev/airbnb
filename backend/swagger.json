@@ -378,35 +378,40 @@
           "schema": {
             "type": "object",
             "properties": {
-              "title": {
-                "$ref": "#/components/fields/ListingTitle"
-              },
-              "owner": {
-                "$ref": "#/components/fields/ListingOwner"
-              },
-              "address": {
-                "$ref": "#/components/fields/ListingAddress"
-              },
-              "price": {
-                "$ref": "#/components/fields/ListingPrice"
-              },
-              "thumbnail": {
-                "$ref": "#/components/fields/ListingThumbnail"
-              },
-              "metadata": {
-                "$ref": "#/components/fields/ListingMetadata"
-              },
-              "reviews": {
-                "$ref": "#/components/fields/ListingReviews"
-              },
-              "availability": {
-                "$ref": "#/components/fields/ListingAvailability"
-              },
-              "published": {
-                "$ref": "#/components/fields/ListingPublished"
-              },
-              "postedOn": {
-                "$ref": "#/components/fields/ListingPostedOn"
+              "listing": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "$ref": "#/components/fields/ListingTitle"
+                  },
+                  "owner": {
+                    "$ref": "#/components/fields/ListingOwner"
+                  },
+                  "address": {
+                    "$ref": "#/components/fields/ListingAddress"
+                  },
+                  "price": {
+                    "$ref": "#/components/fields/ListingPrice"
+                  },
+                  "thumbnail": {
+                    "$ref": "#/components/fields/ListingThumbnail"
+                  },
+                  "metadata": {
+                    "$ref": "#/components/fields/ListingMetadata"
+                  },
+                  "reviews": {
+                    "$ref": "#/components/fields/ListingReviews"
+                  },
+                  "availability": {
+                    "$ref": "#/components/fields/ListingAvailability"
+                  },
+                  "published": {
+                    "$ref": "#/components/fields/ListingPublished"
+                  },
+                  "postedOn": {
+                    "$ref": "#/components/fields/ListingPostedOn"
+                  }
+                }
               }
             }
           }

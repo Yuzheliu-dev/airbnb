@@ -16,6 +16,8 @@ This assignment is due _Friday 21st November, 10pm_.
 
 28/10/25 - Due date typo was updated (wrong day, correct date)
 
+18/11/25 - Added clarifications for ascending/descending sort order
+
 ## Compulsory setup
 
 Please run ./util/setup.sh in your terminal before you begin. This will set up some checks in relation to the "Git Commit Requirements". If you ran this script before the MR rolled out specified in changelog, please run it again.
@@ -165,11 +167,14 @@ When the app loads, regardless of whether a user is logged in or not, they can a
   - You are only required to do case insensitive substring matching (of each word in the search field), nothing more complicated.
 - Other form inputs (filters) should also exist that allow the user to search by:
   - Number of bedrooms (a minimum and maximum number of bedrooms, expressed either via text fields or a slider)
+    - Sort results from max to min beds **or** from min to max beds
   - Date range (two date fields) - only display bookings that are available for the entire date range as inputted by the user.
+    - Sort not required
   - Price (a minimum and maximum price, expressed either via text fields or a slider)
+    - Sort results from highest to lowest price **or** from lowest to highest price
   - Review ratings:
     - Sort results from highest to lowest review rating **or** from lowest to highest review rating
-    - If there is more than one listing with the same rating, their order does not matter
+- For any sort applied, if there is more than one listing with the same value, the order does not matter
 - The search section must have an associated search button that will action the search to reload the results given the new filters.
 
 #### 2.3.3 Multiple search filters 🙉🙉🙉
@@ -178,6 +183,7 @@ When the app loads, regardless of whether a user is logged in or not, they can a
 
 - When multiple filters are applied, only listings that satisfy all selected filters should be displayed.
   - The system should maintain applied filters until the user resets or clears them.
+- If multiple filters are applied, only sorting the result by alphabetical order is required
 - If no listings match the combined filters, the results area should clearly show that no listings are available.
 
 ### 2.4. Feature Set 4. Viewing and Booking Listings (9%)
@@ -242,16 +248,16 @@ When the app loads, regardless of whether a user is logged in or not, they can a
 
 ### 2.6. Feature Set 6. Advanced Features (7%)
 
-#### 2.6.2 Listing Profits Graph
+#### 2.6.1 Listing Profits Graph
 
 - On the screen described in 2.2.1, a graph of how much profit the user has made from all their listings for the past month must be displayed. The X axis should be "how many days ago" (0-30), and the Y axis should be the $$ made on that particular day (sum of income from all listings).
 
-#### 2.6.3. Listing Upload 🙉🙉🙉
+#### 2.6.2. Listing Upload 🙉🙉🙉
 
 - For `2.2.1`, when a new listing is created, the user can optionally upload a .json file containing the full data for a listing. The data structure is validated on the frontend before being passed to the backend normally.
 - If you implement this feature, you must attach an example .json into your repo in the project folder. This file must have name `2.6.json`. This is so we can actually test that it works while marking.
 
-#### 2.6.4. Live Notifications 🙉🙉🙉
+#### 2.6.3. Live Notifications 🙉🙉🙉
 
 The system must support live, in-app notifications for logged-in users. This should be done with some kind of polling.
 
