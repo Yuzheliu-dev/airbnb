@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -104,6 +103,7 @@ function MainLayout({ children }) {
         >
           <button
             type="button"
+            aria-label="Go to all listings"
             onClick={() => navigate('/')}
             style={navButtonStyle(false)}
           >
@@ -113,14 +113,14 @@ function MainLayout({ children }) {
           {isAuthenticated && (
             <button
               type="button"
+              aria-label="Go to hosted listings"
               onClick={() => navigate('/host/listings')}
               style={navButtonStyle(false)}
             >
               Hosted Listings
             </button>
           )}
-
-{isAuthenticated ? (
+          {isAuthenticated ? (
             <>
               <div
                 style={{
@@ -157,6 +157,7 @@ function MainLayout({ children }) {
               </div>
               <button
                 type="button"
+                aria-label="Log out of Airbrb"
                 onClick={handleLogout}
                 style={navButtonStyle(true)}
               >
@@ -167,6 +168,7 @@ function MainLayout({ children }) {
             <>
               <button
                 type="button"
+                aria-label="Open login screen"
                 onClick={() => navigate('/login')}
                 style={navButtonStyle(false)}
               >
@@ -174,6 +176,7 @@ function MainLayout({ children }) {
               </button>
               <button
                 type="button"
+                aria-label="Open register screen"
                 onClick={() => navigate('/register')}
                 style={navPrimaryButtonStyle}
               >
