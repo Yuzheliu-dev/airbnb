@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
 import {
   ErrorNotification,
   SuccessNotification,
-} from '../components/Common/Notification';
+} from '../Common/Notification';
 export default function RegisterPage() {
     const { register } = useAuthContext();
     const navigate = useNavigate();
@@ -55,7 +55,7 @@ export default function RegisterPage() {
           onClose={() => setSuccessMsg('')}
         />
 
-        <form onSubmit={handleSubmit} style={formStyle}>
+        <form onSubmit={handleSubmit} style={formStyle} data-testid="register-form">
           <label style={labelStyle}>
             <span style={labelTextStyle}>Name</span>
             <input

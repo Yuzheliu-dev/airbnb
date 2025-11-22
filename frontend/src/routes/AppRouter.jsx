@@ -11,6 +11,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import HostedListingsPage from '../pages/HostedListingsPage';
 import AllListingsPage from '../pages/AllListingsPage';
+import EditListingPage from '../pages/EditListingPage';
 
 function RequireAuth({ children }) {
   const { isAuthenticated } = useAuthContext();
@@ -252,7 +253,25 @@ export default function AppRouter() {
             path="/host/listings"
             element={
               <RequireAuth>
-                <HostedListingsPage />
+                <HostedListingsPage mode="list" />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/host/listings/new"
+            element={
+              <RequireAuth>
+                <HostedListingsPage mode="create" />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/host/listings/:listingId/edit"
+            element={
+              <RequireAuth>
+                <EditListingPage />
               </RequireAuth>
             }
           />

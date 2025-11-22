@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
 import {
   ErrorNotification,
   SuccessNotification,
-} from '../components/Common/Notification';
+} from '../Common/Notification';
 export default function LoginPage() {
     const { login } = useAuthContext();
     const navigate = useNavigate();
@@ -49,7 +49,7 @@ export default function LoginPage() {
           onClose={() => setSuccessMsg('')}
         />
 
-        <form onSubmit={handleSubmit} style={formStyle}>
+        <form onSubmit={handleSubmit} style={formStyle} data-testid="login-form">
           <label style={labelStyle}>
             <span style={labelTextStyle}>Email</span>
             <input
