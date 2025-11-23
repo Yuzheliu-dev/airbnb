@@ -79,5 +79,64 @@ export default function EditListingPage() {
     loadListing();
   }, [listingId, token]);
 
+  const handleInputChange = (field) => (event) => {
+    const value = event.target.value;
+    setFormState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleNumberChange = (field) => (event) => {
+    const value = parseInt(event.target.value, 10) || 0;
+    setFormState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const validateForm = () => {
+    if (!formState.title.trim()) return 'Please provide a listing title.';
+    if (!formState.addressLine1.trim() || !formState.city.trim() || !formState.country.trim()) {
+      return 'Please complete the address fields.';
+    }
+    if (!formState.price || Number(formState.price) <= 0) {
+      return 'Nightly price must be greater than 0.';
+    }
+    if (!formState.propertyType.trim()) return 'Please specify a property type.';
+    return null;
+  };
+
+  const transformFormToPayload = () => {
+    const videoUrl = formState.youtubeUrl.trim();
+    return {
+      title: formState.title.trim(),
+      address: {
+        line1: formState.addressLine1.trim(),
+        city: formState.city.trim(),
+        state: formState.state.trim(),
+        country: formState.country.trim(),
+      },
+      price: Number(formState.price),
+      thumbnail: formState.thumbnail.trim() || '',
+      metadata: {
+        propertyType: formState.propertyType.trim(),
+        bedrooms: Number(formState.bedrooms),
+        beds: Number(formState.beds),
+        bathrooms: Number(formState.bathrooms),
+        amenities: formState.amenities
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean),
+        description: formState.description.trim(),
+        gallery: formState.gallery
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean),
+        thumbnailVideoUrl: videoUrl || null,
+      },
+    };
+  };
+
   return null;
 }
