@@ -170,5 +170,79 @@ export default function EditListingPage() {
     );
   }
 
-  return null;
+  return (
+    <div style={pageWrapperStyle}>
+      <header style={cardContainerStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+          <h1 style={{ margin: 0 }}>Edit listing</h1>
+          <p style={{ ...mutedTextStyle, margin: 0 }}>
+            Update your listing details and keep them current.
+          </p>
+        </div>
+      </header>
+
+      <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
+      <SuccessNotification message={successMsg} onClose={() => setSuccessMsg('')} />
+
+      <section style={cardContainerStyle}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={formGridStyle}>
+            <label style={formLabelStyle}>
+              <span>Listing title *</span>
+              <input
+                type="text"
+                required
+                value={formState.title}
+                onChange={handleInputChange('title')}
+                style={inputStyle}
+                placeholder="e.g. Cozy Coastal Cottage"
+              />
+            </label>
+            <label style={formLabelStyle}>
+              <span>Nightly price (AUD) *</span>
+              <input
+                type="number"
+                required
+                min="1"
+                value={formState.price}
+                onChange={handleInputChange('price')}
+                style={inputStyle}
+              />
+            </label>
+            <label style={formLabelStyle}>
+              <span>Property type *</span>
+              <input
+                type="text"
+                required
+                value={formState.propertyType}
+                onChange={handleInputChange('propertyType')}
+                style={inputStyle}
+                placeholder="Apartment / House / Studio"
+              />
+            </label>
+            <label style={formLabelStyle}>
+              <span>Thumbnail URL</span>
+              <input
+                type="url"
+                value={formState.thumbnail}
+                onChange={handleInputChange('thumbnail')}
+                style={inputStyle}
+                placeholder="https://"
+              />
+            </label>
+            <label style={formLabelStyle}>
+              <span>YouTube embed URL (optional)</span>
+              <input
+                type="url"
+                value={formState.youtubeUrl}
+                onChange={handleInputChange('youtubeUrl')}
+                style={inputStyle}
+                placeholder="https://www.youtube.com/embed/..."
+              />
+            </label>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
 }
