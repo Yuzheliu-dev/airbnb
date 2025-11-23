@@ -1,4 +1,4 @@
-import configData from '../config.json';
+import configData from '../backend.config.json';
 
 const BACKEND_URL = `http://localhost:${configData.BACKEND_PORT}`;
 async function request(path, options = {}) {
