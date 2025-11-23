@@ -45,5 +45,39 @@ export default function EditListingPage() {
     youtubeUrl: '',
   });
 
+  useEffect(() => {
+    const loadListing = async () => {
+      if (!listingId || !token) return;
+      setLoading(true);
+      setErrorMsg('');
+      try {
+        const { listing } = await listingsApi.getListingById(Number(listingId));
+        setFormState({
+          title: listing.title || '',
+          addressLine1: listing.address?.line1 || '',
+          city: listing.address?.city || '',
+          state: listing.address?.state || '',
+          country: listing.address?.country || '',
+          price: listing.price?.toString() || '',
+          thumbnail: listing.thumbnail || '',
+          propertyType: listing.metadata?.propertyType || '',
+          bedrooms: listing.metadata?.bedrooms || 1,
+          beds: listing.metadata?.beds || 1,
+          bathrooms: listing.metadata?.bathrooms || 1,
+          amenities: parseAmenities(listing.metadata?.amenities),
+          description: listing.metadata?.description || '',
+          gallery: parseGallery(listing.metadata?.gallery),
+          youtubeUrl: listing.metadata?.thumbnailVideoUrl || '',
+        });
+      } catch (err) {
+        setErrorMsg(err.message || 'Failed to load listing.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadListing();
+  }, [listingId, token]);
+
   return null;
 }
