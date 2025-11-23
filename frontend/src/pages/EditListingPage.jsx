@@ -138,5 +138,37 @@ export default function EditListingPage() {
     };
   };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+    const validationError = validateForm();
+    if (validationError) {
+      setErrorMsg(validationError);
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const payload = transformFormToPayload();
+      await listingsApi.updateListing(Number(listingId), payload, token);
+      setSuccessMsg('Listing updated successfully.');
+      setTimeout(() => {
+        navigate('/host/listings', { replace: true });
+      }, 1000);
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to update listing.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={pageWrapperStyle}>
+        <p style={mutedTextStyle}>Loading listing details...</p>
+      </div>
+    );
+  }
+
   return null;
 }
