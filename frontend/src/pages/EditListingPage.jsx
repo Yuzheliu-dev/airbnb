@@ -366,3 +366,83 @@ export default function EditListingPage() {
     </div>
   );
 }
+
+const pageWrapperStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.2rem',
+};
+
+const cardContainerStyle = {
+  backgroundColor: 'rgba(255,255,255,0.94)',
+  border: '1px solid rgba(148,163,184,0.38)',
+  borderRadius: '18px',
+  padding: '1.4rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.8rem',
+  boxShadow: '0 16px 40px rgba(15,23,42,0.08)',
+};
+
+const mutedTextStyle = {
+  color: '#6b7280',
+  fontSize: '0.85rem',
+};
+
+const formGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '0.8rem',
+};
+
+const formLabelStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.3rem',
+  fontSize: '0.85rem',
+  color: '#374151',
+};
+
+const inputStyle = {
+  padding: '0.65rem 0.8rem',
+  borderRadius: '12px',
+  border: '1px solid rgba(148,163,184,0.7)',
+  fontSize: '0.9rem',
+  outline: 'none',
+  transition: 'border-color 0.2s ease',
+};
+
+const fieldsetStyle = {
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '16px',
+  padding: '1rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.8rem',
+};
+
+const legendStyle = {
+  padding: '0 0.4rem',
+  fontWeight: 600,
+};
+
+const primaryButtonStyle = {
+  padding: '0.55rem 1rem',
+  borderRadius: '999px',
+  border: 'none',
+  background: 'linear-gradient(135deg, #4f46e5, #6366f1, #ec4899)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontWeight: 600,
+  boxShadow: '0 10px 25px rgba(79,70,229,0.35)',
+};
+
+const linkButtonStyle = {
+  padding: '0.5rem 0.8rem',
+  borderRadius: '10px',
+  border: '1px solid rgba(148,163,184,0.5)',
+  background: '#fff',
+  cursor: 'pointer',
+  color: '#4f46e5',
+  fontWeight: 500,
+};
