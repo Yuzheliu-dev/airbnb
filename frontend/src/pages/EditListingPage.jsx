@@ -241,6 +241,86 @@ export default function EditListingPage() {
               />
             </label>
           </div>
+          <fieldset style={fieldsetStyle}>
+            <legend style={legendStyle}>Address *</legend>
+            <div style={formGridStyle}>
+              <label style={formLabelStyle}>
+                <span>Street address</span>
+                <input
+                  type="text"
+                  required
+                  value={formState.addressLine1}
+                  onChange={handleInputChange('addressLine1')}
+                  style={inputStyle}
+                  placeholder="123 Sample Street"
+                />
+              </label>
+              <label style={formLabelStyle}>
+                <span>City</span>
+                <input
+                  type="text"
+                  required
+                  value={formState.city}
+                  onChange={handleInputChange('city')}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={formLabelStyle}>
+                <span>State / Region</span>
+                <input
+                  type="text"
+                  value={formState.state}
+                  onChange={handleInputChange('state')}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={formLabelStyle}>
+                <span>Country</span>
+                <input
+                  type="text"
+                  required
+                  value={formState.country}
+                  onChange={handleInputChange('country')}
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+          </fieldset>
+          <fieldset style={fieldsetStyle}>
+            <legend style={legendStyle}>Property details</legend>
+            <div style={formGridStyle}>
+              <label style={formLabelStyle}>
+                <span>Bedrooms</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={formState.bedrooms}
+                  onChange={handleNumberChange('bedrooms')}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={formLabelStyle}>
+                <span>Total beds</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={formState.beds}
+                  onChange={handleNumberChange('beds')}
+                  style={inputStyle}
+                />
+              </label>
+              <label style={formLabelStyle}>
+                <span>Bathrooms</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={formState.bathrooms}
+                  onChange={handleNumberChange('bathrooms')}
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+          </fieldset>
         </form>
       </section>
     </div>
