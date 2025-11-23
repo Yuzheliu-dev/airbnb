@@ -321,6 +321,46 @@ export default function EditListingPage() {
               </label>
             </div>
           </fieldset>
+          <label style={formLabelStyle}>
+            <span>Amenities (comma separated)</span>
+            <input
+              type="text"
+              value={formState.amenities}
+              onChange={handleInputChange('amenities')}
+              style={inputStyle}
+              placeholder="WiFi, Parking, Pool"
+            />
+          </label>
+          <label style={formLabelStyle}>
+            <span>Description</span>
+            <textarea
+              value={formState.description}
+              onChange={handleInputChange('description')}
+              style={{ ...inputStyle, minHeight: '120px', resize: 'vertical' }}
+              placeholder="Share what makes your place memorable..."
+            />
+          </label>
+          <label style={formLabelStyle}>
+            <span>Gallery image URLs (one per line)</span>
+            <textarea
+              value={formState.gallery}
+              onChange={handleInputChange('gallery')}
+              style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }}
+              placeholder="https://example.com/image-1.jpg"
+            />
+          </label>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
+            <button
+              type="button"
+              style={linkButtonStyle}
+              onClick={() => navigate('/host/listings')}
+            >
+              Cancel
+            </button>
+            <button type="submit" style={primaryButtonStyle} disabled={isSubmitting}>
+              {isSubmitting ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
         </form>
       </section>
     </div>
