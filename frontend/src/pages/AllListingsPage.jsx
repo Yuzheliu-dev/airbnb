@@ -10,6 +10,9 @@ const filterDefaults = {
   priceMin: '',
   priceMax: '',
   priceOrder: 'asc',
+  dateStart: '',
+  dateEnd: '',
+  dateOrder: 'asc',
 };
 
 const bookingPriority = {
@@ -31,6 +34,18 @@ const matchesSearch = (listing, term) => {
   const title = listing.title?.toLowerCase() ?? '';
   const city = listing.address?.city?.toLowerCase() ?? '';
   return title.includes(target) || city.includes(target);
+};
+
+const hasAvailabilityForRange = (listing, startDate, endDate) => {
+  if (!startDate || !endDate) return true;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (Number.isNaN(start) || Number.isNaN(end) || start > end) return false;
+  return (listing.availability || []).some((range) => {
+    const rangeStart = new Date(range.start);
+    const rangeEnd = new Date(range.end);
+    return start >= rangeStart && end <= rangeEnd;
+  });
 };
 
 const ensureNumber = (value) => {
@@ -125,6 +140,11 @@ export default function AllListingsPage() {
         return '价格区间的最小值不能大于最大值';
       }
     }
+    if (filterType === 'date') {
+      if (filterDraft.dateStart && filterDraft.dateEnd && filterDraft.dateStart > filterDraft.dateEnd) {
+        return '请选择有效的起止日期';
+      }
+    }
     return '';
   };
 
@@ -173,6 +193,17 @@ export default function AllListingsPage() {
         if (min !== null && listing.price < min) return false;
         if (max !== null && listing.price > max) return false;
       }
+      if (appliedFilters.type === 'date') {
+        if (
+          !hasAvailabilityForRange(
+            listing,
+            appliedFilters.data.dateStart,
+            appliedFilters.data.dateEnd,
+          )
+        ) {
+          return false;
+        }
+      }
       return true;
     });
 
@@ -187,6 +218,13 @@ export default function AllListingsPage() {
     } else if (appliedFilters.type === 'price') {
       const order = appliedFilters.data.priceOrder === 'desc' ? sortDesc : sortAsc;
       pool = [...pool].sort((a, b) => order(a.price, b.price));
+    } else if (appliedFilters.type === 'date') {
+      const order = appliedFilters.data.dateOrder === 'desc' ? sortDesc : sortAsc;
+      pool = [...pool].sort((a, b) => {
+        const firstA = new Date(a.availability?.[0]?.start || 0).getTime();
+        const firstB = new Date(b.availability?.[0]?.start || 0).getTime();
+        return order(firstA, firstB);
+      });
     } else {
       pool = [...pool].sort((a, b) => a.title.localeCompare(b.title));
     }
@@ -225,6 +263,7 @@ export default function AllListingsPage() {
             <option value="none">仅按标题排序</option>
             <option value="bedrooms">卧室数量</option>
             <option value="price">价格区间</option>
+            <option value="date">可入住日期</option>
           </select>
         </label>
         <div style={simpleButtonRowStyle}>
