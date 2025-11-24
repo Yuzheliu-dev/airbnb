@@ -3,6 +3,15 @@ import { useAuthContext } from '../context/AuthContext';
 import * as listingsApi from '../api/listings';
 import * as bookingsApi from '../api/bookings';
 
+const filterDefaults = {
+  bedroomsMin: '',
+  bedroomsMax: '',
+  bedroomsOrder: 'asc',
+  priceMin: '',
+  priceMax: '',
+  priceOrder: 'asc',
+};
+
 const bookingPriority = {
   accepted: 2,
   pending: 1,
@@ -16,11 +25,32 @@ const calculateRating = (reviews = []) => {
   return Math.round(avg * 10) / 10;
 };
 
+const matchesSearch = (listing, term) => {
+  if (!term) return true;
+  const target = term.toLowerCase();
+  const title = listing.title?.toLowerCase() ?? '';
+  const city = listing.address?.city?.toLowerCase() ?? '';
+  return title.includes(target) || city.includes(target);
+};
+
+const ensureNumber = (value) => {
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 export default function AllListingsPage() {
-  const { token, email } = useAuthContext();
+  const { token, email, isAuthenticated } = useAuthContext();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('none');
+  const [filterDraft, setFilterDraft] = useState({ ...filterDefaults });
+  const [appliedFilters, setAppliedFilters] = useState({
+    term: '',
+    type: 'none',
+    data: { ...filterDefaults },
+  });
   const [bookingMeta, setBookingMeta] = useState({});
 
   const loadListings = useCallback(async () => {
@@ -80,12 +110,90 @@ export default function AllListingsPage() {
     loadBookings();
   }, [loadBookings]);
 
+  const validateFilters = () => {
+    if (filterType === 'bedrooms') {
+      const min = ensureNumber(filterDraft.bedroomsMin);
+      const max = ensureNumber(filterDraft.bedroomsMax);
+      if (min !== null && max !== null && min > max) {
+        return '卧室数量的最小值不能大于最大值';
+      }
+    }
+    if (filterType === 'price') {
+      const min = ensureNumber(filterDraft.priceMin);
+      const max = ensureNumber(filterDraft.priceMax);
+      if (min !== null && max !== null && min > max) {
+        return '价格区间的最小值不能大于最大值';
+      }
+    }
+    return '';
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    const validationMsg = validateFilters();
+    if (validationMsg) {
+      setErrorMsg(validationMsg);
+      return;
+    }
+    setErrorMsg('');
+    setAppliedFilters({
+      term: searchTerm.trim(),
+      type: filterType,
+      data: { ...filterDraft },
+    });
+  };
+
+  const handleReset = () => {
+    setSearchTerm('');
+    setFilterType('none');
+    setFilterDraft({ ...filterDefaults });
+    setAppliedFilters({
+      term: '',
+      type: 'none',
+      data: { ...filterDefaults },
+    });
+    setErrorMsg('');
+  };
+
   const derivedListings = useMemo(() => {
     if (!listings.length) return [];
-    const sorted = [...listings].sort((a, b) => a.title.localeCompare(b.title));
+    const appliedTerm = appliedFilters.term?.toLowerCase() ?? '';
+    let pool = listings.filter((listing) => {
+      if (!matchesSearch(listing, appliedTerm)) return false;
+      if (appliedFilters.type === 'bedrooms') {
+        const min = ensureNumber(appliedFilters.data.bedroomsMin);
+        const max = ensureNumber(appliedFilters.data.bedroomsMax);
+        const count = listing.metadata?.bedrooms ?? 0;
+        if (min !== null && count < min) return false;
+        if (max !== null && count > max) return false;
+      }
+      if (appliedFilters.type === 'price') {
+        const min = ensureNumber(appliedFilters.data.priceMin);
+        const max = ensureNumber(appliedFilters.data.priceMax);
+        if (min !== null && listing.price < min) return false;
+        if (max !== null && listing.price > max) return false;
+      }
+      return true;
+    });
+
+    const sortAsc = (a, b) => a - b;
+    const sortDesc = (a, b) => b - a;
+
+    if (appliedFilters.type === 'bedrooms') {
+      const order = appliedFilters.data.bedroomsOrder === 'desc' ? sortDesc : sortAsc;
+      pool = [...pool].sort((a, b) =>
+        order(a.metadata?.bedrooms ?? 0, b.metadata?.bedrooms ?? 0),
+      );
+    } else if (appliedFilters.type === 'price') {
+      const order = appliedFilters.data.priceOrder === 'desc' ? sortDesc : sortAsc;
+      pool = [...pool].sort((a, b) => order(a.price, b.price));
+    } else {
+      pool = [...pool].sort((a, b) => a.title.localeCompare(b.title));
+    }
+
     const prioritized = [];
     const rest = [];
-    sorted.forEach((listing) => {
+    pool.forEach((listing) => {
       if (bookingMeta[listing.id]) {
         prioritized.push(listing);
       } else {
@@ -93,11 +201,39 @@ export default function AllListingsPage() {
       }
     });
     return [...prioritized, ...rest];
-  }, [listings, bookingMeta]);
+  }, [listings, bookingMeta, appliedFilters]);
 
   return (
     <div style={basicContainerStyle}>
       <h1 style={titleStyle}>Explore stays</h1>
+      {isAuthenticated && (
+        <p style={infoTextStyle}>你预订过的房源会被优先展示。</p>
+      )}
+      <form onSubmit={handleSearch} style={simpleFormStyle}>
+        <label style={simpleLabelStyle}>
+          搜索标题 / 城市
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Sydney / 海景 / Loft..."
+          />
+        </label>
+        <label style={simpleLabelStyle}>
+          筛选类型
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+            <option value="none">仅按标题排序</option>
+            <option value="bedrooms">卧室数量</option>
+            <option value="price">价格区间</option>
+          </select>
+        </label>
+        <div style={simpleButtonRowStyle}>
+          <button type="submit">搜索</button>
+          <button type="button" onClick={handleReset}>
+            重置
+          </button>
+        </div>
+      </form>
       {errorMsg && (
         <p style={{ color: '#b91c1c', marginBottom: '0.75rem' }} role="alert">
           {errorMsg}
@@ -134,4 +270,30 @@ const titleStyle = {
   fontSize: '1.4rem',
   marginTop: 0,
   marginBottom: '0.8rem',
+};
+
+const infoTextStyle = {
+  fontSize: '0.9rem',
+  color: '#6b7280',
+  marginTop: 0,
+};
+
+const simpleFormStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.6rem',
+  margin: '0 0 1rem 0',
+};
+
+const simpleLabelStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.3rem',
+  fontSize: '0.85rem',
+  color: '#374151',
+};
+
+const simpleButtonRowStyle = {
+  display: 'flex',
+  gap: '0.5rem',
 };
