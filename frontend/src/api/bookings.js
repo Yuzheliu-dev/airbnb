@@ -30,3 +30,39 @@ export function getAllBookings(token) {
   });
 }
 
+export function createBooking(listingId, dateRange, totalPrice, token) {
+  return request(`/bookings/new/${listingId}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ dateRange, totalPrice }),
+  });
+}
+
+export function deleteBooking(bookingId, token) {
+  return request(`/bookings/${bookingId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function acceptBooking(bookingId, token) {
+  return request(`/bookings/accept/${bookingId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function declineBooking(bookingId, token) {
+  return request(`/bookings/decline/${bookingId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
