@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ErrorNotification, SuccessNotification } from '../Common/Notification';
 import { useAuthContext } from '../context/AuthContext';
 import * as listingsApi from '../api/listings';
+import * as bookingsApi from '../api/bookings';
 
 const DEFAULT_THUMBNAIL =
   'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80';
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const PROFIT_WINDOW_DAYS = 31;
 
 const initialFormState = {
   title: '',
@@ -59,6 +62,8 @@ const parseGallery = (value) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const buildEmptyProfitSeries = () => Array.from({ length: PROFIT_WINDOW_DAYS }, () => 0);
+
 export default function HostedListingsPage({ mode = 'list' }) {
   const { email, token } = useAuthContext();
   const navigate = useNavigate();
@@ -71,6 +76,8 @@ export default function HostedListingsPage({ mode = 'list' }) {
   const [busyListingId, setBusyListingId] = useState(null);
   const [availabilityEditor, setAvailabilityEditor] = useState(null);
   const [availabilityBusy, setAvailabilityBusy] = useState(false);
+  const [profitSeries, setProfitSeries] = useState(buildEmptyProfitSeries);
+  const [profitLoading, setProfitLoading] = useState(false);
 
   const summary = useMemo(() => {
     const publishedCount = listings.filter((listing) => listing.published).length;
@@ -80,6 +87,12 @@ export default function HostedListingsPage({ mode = 'list' }) {
       draft: listings.length - publishedCount,
     };
   }, [listings]);
+
+  const totalProfitLastMonth = useMemo(
+    () => profitSeries.reduce((sum, value) => sum + value, 0),
+    [profitSeries],
+  );
+  const profitMax = useMemo(() => Math.max(...profitSeries, 0), [profitSeries]);
 
   const loadListings = useCallback(async () => {
     setLoading(true);
@@ -110,6 +123,47 @@ export default function HostedListingsPage({ mode = 'list' }) {
     }
   }, [email, loadListings]);
 
+  useEffect(() => {
+    const computeProfitSeries = async () => {
+      if (!token || !listings.length) {
+        setProfitSeries(buildEmptyProfitSeries());
+        return;
+      }
+      setProfitLoading(true);
+      try {
+        const hostIds = new Set(listings.map((listing) => Number(listing.id)));
+        const { bookings } = await bookingsApi.getAllBookings(token);
+        const now = new Date();
+        const nextSeries = buildEmptyProfitSeries();
+        bookings.forEach((booking) => {
+          if (booking.status !== 'accepted') return;
+          if (!hostIds.has(Number(booking.listingId))) return;
+          const start = new Date(booking.dateRange?.start || '');
+          const end = new Date(booking.dateRange?.end || '');
+          if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return;
+          const nights = Math.round((end - start) / MS_PER_DAY);
+          if (!nights) return;
+          const nightlyRate = (booking.totalPrice || 0) / nights;
+          for (let offset = 0; offset < nights; offset += 1) {
+            const current = new Date(start);
+            current.setDate(start.getDate() + offset);
+            const daysAgo = Math.floor((now - current) / MS_PER_DAY);
+            if (daysAgo >= 0 && daysAgo < PROFIT_WINDOW_DAYS) {
+              nextSeries[daysAgo] += nightlyRate;
+            }
+          }
+        });
+        setProfitSeries(nextSeries);
+      } catch (err) {
+        console.error('Failed to compute profit series', err);
+        setProfitSeries(buildEmptyProfitSeries());
+      } finally {
+        setProfitLoading(false);
+      }
+    };
+    computeProfitSeries();
+  }, [token, listings]);
+
   const handleDelete = async (listingId) => {
     setBusyListingId(listingId);
     setErrorMsg('');
@@ -120,6 +174,21 @@ export default function HostedListingsPage({ mode = 'list' }) {
       await loadListings();
     } catch (err) {
       setErrorMsg(err.message || 'Unable to delete listing.');
+    } finally {
+      setBusyListingId(null);
+    }
+  };
+
+  const handleUnpublishDirect = async (listingId) => {
+    setBusyListingId(listingId);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      await listingsApi.unpublishListing(listingId, token);
+      setSuccessMsg('Listing unpublished successfully.');
+      await loadListings();
+    } catch (err) {
+      setErrorMsg(err.message || 'Unable to unpublish listing.');
     } finally {
       setBusyListingId(null);
     }
@@ -369,6 +438,23 @@ export default function HostedListingsPage({ mode = 'list' }) {
                       onClick={() => openAvailabilityManager(listing)}
                     >
                       Manage availability
+                    </button>
+                    {listing.published && (
+                      <button
+                        type="button"
+                        style={linkButtonStyle}
+                        disabled={busyListingId === listing.id}
+                        onClick={() => handleUnpublishDirect(listing.id)}
+                      >
+                        {busyListingId === listing.id ? 'Updating…' : 'Unpublish'}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      style={linkButtonStyle}
+                      onClick={() => navigate(`/host/listings/${listing.id}/bookings`)}
+                    >
+                      Manage bookings
                     </button>
                     <button
                       type="button"
@@ -712,6 +798,36 @@ export default function HostedListingsPage({ mode = 'list' }) {
         </div>
       </section>
 
+      <section style={cardContainerStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
+          <div>
+            <h2 style={{ margin: 0 }}>最近 30 天收益</h2>
+            <p style={{ ...mutedTextStyle, margin: 0 }}>X 轴为距离今天的天数，Y 轴为每天结算的收益 (AUD)</p>
+          </div>
+          <strong style={{ fontSize: '1.2rem' }}>总收益：${Math.round(totalProfitLastMonth)}</strong>
+        </div>
+        {profitLoading ? (
+          <p style={mutedTextStyle}>正在生成图表...</p>
+        ) : profitSeries.some((value) => value > 0) ? (
+          <div style={profitChartStyle}>
+            {profitSeries.map((value, index) => {
+              const height = profitMax ? Math.max(6, (value / profitMax) * 100) : 6;
+              return (
+                <div key={`profit-${index}`} style={profitBarWrapperStyle}>
+                  <div
+                    style={{ ...profitBarStyle, height: `${height}%`, opacity: value ? 1 : 0.3 }}
+                    title={`距离今天 ${index} 天：$${value.toFixed(0)}`}
+                  />
+                  <span style={profitBarLabelStyle}>{index === 0 ? '今' : index}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p style={mutedTextStyle}>最近 30 天暂无收益记录。</p>
+        )}
+      </section>
+
       <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
       <SuccessNotification message={successMsg} onClose={() => setSuccessMsg('')} />
 
@@ -912,6 +1028,34 @@ const rangeItemStyle = {
 const smallLinkButtonStyle = {
   ...linkButtonStyle,
   padding: '0.35rem 0.6rem',
+};
+
+const profitChartStyle = {
+  display: 'grid',
+  gridTemplateColumns: `repeat(${PROFIT_WINDOW_DAYS}, minmax(8px, 1fr))`,
+  alignItems: 'end',
+  height: 160,
+  gap: '0.25rem',
+  marginTop: '0.8rem',
+};
+
+const profitBarWrapperStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '0.25rem',
+};
+
+const profitBarStyle = {
+  width: '100%',
+  borderRadius: '6px 6px 0 0',
+  background: 'linear-gradient(135deg, #f97316, #fb7185)',
+  transition: 'height 0.2s ease',
+};
+
+const profitBarLabelStyle = {
+  fontSize: '0.65rem',
+  color: '#94a3b8',
 };
 
 const formGridStyle = {
