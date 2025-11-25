@@ -254,6 +254,27 @@ export default function AllListingsPage() {
     return [...prioritized, ...rest];
   }, [listings, bookingMeta, appliedFilters]);
 
+  const activeFilterChips = useMemo(() => {
+    const chips = [];
+    if (appliedFilters.bedroomsEnabled) {
+      const min = appliedFilters.bedroomsMin || '任意';
+      const max = appliedFilters.bedroomsMax || '任意';
+      chips.push(`卧室 ${min}-${max} (${appliedFilters.bedroomsOrder === 'desc' ? '多→少' : '少→多'})`);
+    }
+    if (appliedFilters.priceEnabled) {
+      const min = appliedFilters.priceMin || '任意';
+      const max = appliedFilters.priceMax || '任意';
+      chips.push(`价格 ${min}-${max} (${appliedFilters.priceOrder === 'desc' ? '高→低' : '低→高'})`);
+    }
+    if (appliedFilters.dateEnabled && appliedFilters.dateStart && appliedFilters.dateEnd) {
+      chips.push(`日期 ${appliedFilters.dateStart} → ${appliedFilters.dateEnd}`);
+    }
+    if (appliedFilters.ratingEnabled) {
+      chips.push(`评分 ${appliedFilters.ratingOrder === 'desc' ? '高→低' : '低→高'}`);
+    }
+    return chips;
+  }, [appliedFilters]);
+
   return (
     <div style={basicContainerStyle}>
       <h1 style={titleStyle}>Explore stays</h1>
@@ -425,30 +446,74 @@ export default function AllListingsPage() {
         </fieldset>
 
         <div style={simpleButtonRowStyle}>
-          <button type="submit">搜索</button>
+          <button type="submit">应用筛选</button>
           <button type="button" onClick={handleReset}>
-            重置
+            清空
           </button>
         </div>
       </form>
-      {errorMsg && (
-        <p style={{ color: '#b91c1c', marginBottom: '0.75rem' }} role="alert">
-          {errorMsg}
-        </p>
+      <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
+      {activeFilterChips.length > 0 && (
+        <ul style={activeChipsStyle}>
+          {activeFilterChips.map((chip) => (
+            <li key={chip}>{chip}</li>
+          ))}
+        </ul>
       )}
       {loading ? (
         <p>Loading published listings...</p>
       ) : derivedListings.length ? (
-        <ul style={{ paddingLeft: '1rem' }}>
+        <div style={listingsGridStyle}>
           {derivedListings.map((listing) => (
-            <li key={listing.id}>
-              {listing.title}
-              {bookingMeta[listing.id] ? ' — 已预订' : ''}
-            </li>
+            <article key={listing.id} style={listingCardStyle}>
+              <div style={thumbnailWrapperStyle}>
+                <img
+                  src={listing.thumbnail}
+                  alt={`${listing.title} thumbnail`}
+                  style={listingThumbnailStyle}
+                />
+                {bookingMeta[listing.id] && (
+                  <span style={statusPillStyle}>
+                    {bookingMeta[listing.id].status === 'accepted' ? '已接受订单' : '待确认'}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                <div style={cardHeaderStyle}>
+                  <h3 style={cardTitleStyle}>{listing.title}</h3>
+                  <span style={ratingStyle}>
+                    ⭐ {listing.rating ?? '暂无'}
+                    {listing.reviewCount ? ` (${listing.reviewCount})` : ''}
+                  </span>
+                </div>
+                <p style={addressStyle}>{formatAddress(listing.address)}</p>
+                <div style={cardStatsRowStyle}>
+                  <span>{listing.metadata?.bedrooms ?? 0} 卧室</span>
+                  <span>{listing.metadata?.beds ?? 0} 床位</span>
+                  <span>{listing.metadata?.bathrooms ?? 0} 卫浴</span>
+                </div>
+                <div style={cardFooterRowStyle}>
+                  <strong>${listing.price} / 晚</strong>
+                  <button
+                    type="button"
+                    style={detailButtonStyle}
+                    onClick={() =>
+                      navigate(`/listings/${listing.id}`, {
+                        state: {
+                          searchFilters: appliedFilters,
+                        },
+                      })
+                    }
+                  >
+                    查看详情
+                  </button>
+                </div>
+              </div>
+            </article>
           ))}
-        </ul>
+        </div>
       ) : (
-        <p>No published listings yet.</p>
+        <p>暂无符合条件的房源。</p>
       )}
     </div>
   );
@@ -461,12 +526,15 @@ const basicContainerStyle = {
   backgroundColor: 'rgba(255,255,255,0.94)',
   border: '1px solid rgba(148,163,184,0.38)',
   boxShadow: '0 16px 40px rgba(15,23,42,0.16)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
 };
 
 const titleStyle = {
   fontSize: '1.4rem',
   marginTop: 0,
-  marginBottom: '0.8rem',
+  marginBottom: '0.3rem',
 };
 
 const infoTextStyle = {
@@ -478,7 +546,7 @@ const infoTextStyle = {
 const simpleFormStyle = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.6rem',
+  gap: '0.8rem',
   margin: '0 0 1rem 0',
 };
 
