@@ -338,3 +338,173 @@ export default function ListingDetailPage() {
         {listing.metadata?.description && <p>{listing.metadata.description}</p>}
         {!!listing.metadata?.amenities?.length && (
           <div>
+            <h3 style={{ margin: '0 0 0.4rem' }}>设施</h3>
+            <ul style={pillListStyle}>
+              {listing.metadata.amenities.map((item) => (
+                <li key={item} style={pillItemStyle}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      <SuccessNotification message={successMsg} onClose={() => setSuccessMsg('')} />
+      <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
+
+      <section style={cardStyle}>
+        <h2 style={{ marginTop: 0 }}>立即预订</h2>
+        <form onSubmit={handleBookingSubmit} style={bookingFormStyle}>
+          <label style={formLabelStyle}>
+            入住日期
+            <input type="date" value={bookingForm.start} onChange={handleBookingFieldChange('start')} />
+          </label>
+          <label style={formLabelStyle}>
+            退房日期
+            <input type="date" value={bookingForm.end} onChange={handleBookingFieldChange('end')} />
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span>共 {totalNights} 晚</span>
+            <strong>预计总价：${totalPrice}</strong>
+          </div>
+          <button type="submit" style={primaryButtonStyle} disabled={bookingBusy}>
+            {bookingBusy ? '提交中...' : '发送预订请求'}
+          </button>
+        </form>
+        {!listing.availability?.length && (
+          <p style={mutedTextStyle}>房源暂未发布可用日期，无法预订。</p>
+        )}
+      </section>
+
+      {userBookings.length > 0 && (
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>我的订单</h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            {userBookings.map((booking) => (
+              <li key={booking.id} style={bookingChipStyle}>
+                <div>
+                  <strong>
+                    {new Date(booking.dateRange.start).toLocaleDateString()} →{' '}
+                    {new Date(booking.dateRange.end).toLocaleDateString()}
+                  </strong>
+                  <p style={{ margin: 0, color: '#6b7280' }}>状态：{booking.status}</p>
+                </div>
+                <span>总价：${booking.totalPrice}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {acceptedBookings.length > 0 && (
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>留下点评</h2>
+          <form onSubmit={handleReviewSubmit} style={reviewFormStyle}>
+            <label style={formLabelStyle}>
+              选择订单
+              <select value={reviewForm.bookingId} onChange={handleReviewFieldChange('bookingId')}>
+                <option value="">请选择</option>
+                {acceptedBookings.map((booking) => (
+                  <option key={booking.id} value={booking.id}>
+                    #{booking.id} · {new Date(booking.dateRange.start).toLocaleDateString()}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label style={formLabelStyle}>
+              评分
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={reviewForm.rating}
+                onChange={handleReviewFieldChange('rating')}
+              />
+            </label>
+            <label style={{ ...formLabelStyle, gridColumn: 'span 2' }}>
+              点评
+              <textarea
+                value={reviewForm.comment}
+                onChange={handleReviewFieldChange('comment')}
+                rows={3}
+                placeholder="分享你的入住体验..."
+              />
+            </label>
+            <button type="submit" style={primaryButtonStyle} disabled={reviewBusy}>
+              {reviewBusy ? '提交中...' : '提交点评'}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <section style={cardStyle}>
+        <h2 style={{ marginTop: 0 }}>住客点评</h2>
+        {listing.reviews?.length ? (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {listing.reviews.map((review, index) => (
+              <li key={`${review.comment}-${index}`} style={reviewCardStyle}>
+                <strong>⭐ {review.rating ?? 'N/A'}</strong>
+                <p style={{ margin: '0.2rem 0' }}>{review.comment || '无文字评论'}</p>
+                <small style={mutedTextStyle}>
+                  {review.createdBy || '匿名'} ·{' '}
+                  {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '刚刚'}
+                </small>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p style={mutedTextStyle}>暂无点评。</p>
+        )}
+      </section>
+
+      {ratingModal.open && (
+        <div style={modalOverlayStyle} role="dialog" aria-modal="true">
+          <div style={modalContentStyle}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0 }}>{ratingModal.rating} 星点评</h3>
+                <p style={{ ...mutedTextStyle, margin: 0 }}>
+                  共 {filteredModalReviews.length} 条
+                </p>
+              </div>
+              <button
+                type="button"
+                style={linkButtonStyle}
+                onClick={() => setRatingModal({ open: false, rating: null })}
+              >
+                关闭
+              </button>
+            </header>
+            <div style={{ maxHeight: 320, overflow: 'auto', marginTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              {filteredModalReviews.length ? (
+                filteredModalReviews.map((review, index) => (
+                  <article key={`modal-review-${index}`} style={reviewCardStyle}>
+                    <strong>⭐ {review.rating ?? 'N/A'}</strong>
+                    <p style={{ margin: '0.2rem 0' }}>{review.comment || '无文字评论'}</p>
+                    <small style={mutedTextStyle}>
+                      {review.createdBy || '匿名'} ·{' '}
+                      {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '刚刚'}
+                    </small>
+                  </article>
+                ))
+              ) : (
+                <p style={mutedTextStyle}>暂无该评分的点评。</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const cardStyle = {
+  backgroundColor: 'rgba(255,255,255,0.94)',
+  border: '1px solid rgba(148,163,184,0.38)',
+  borderRadius: '18px',
+  padding: '1.4rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.8rem',
+  boxShadow: '0 16px 40px rgba(15,23,42,0.08)',
