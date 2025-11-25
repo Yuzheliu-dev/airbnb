@@ -168,3 +168,173 @@ export default function ListingDetailPage() {
       setErrorMsg('请先登录再进行预订。');
       return;
     }
+    if (!bookingForm.start || !bookingForm.end) {
+      setErrorMsg('请选择完整的入住日期。');
+      return;
+    }
+    if (!isRangeWithinAvailability(listing, bookingForm.start, bookingForm.end)) {
+      setErrorMsg('选定日期不在可预订范围内。');
+      return;
+    }
+    if (!totalNights) {
+      setErrorMsg('请选择至少一晚。');
+      return;
+    }
+    setBookingBusy(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      await bookingsApi.createBooking(
+        listingId,
+        {
+          start: new Date(bookingForm.start).toISOString(),
+          end: new Date(bookingForm.end).toISOString(),
+        },
+        totalPrice,
+        token,
+      );
+      setSuccessMsg('预订请求已发送，等待房东处理。');
+      setBookingForm(initialBookingForm);
+      loadUserBookings();
+    } catch (err) {
+      setErrorMsg(err.message || '预订失败，请稍后重试。');
+    } finally {
+      setBookingBusy(false);
+    }
+  };
+
+  const acceptedBookings = useMemo(
+    () => userBookings.filter((booking) => booking.status === 'accepted'),
+    [userBookings],
+  );
+
+  const handleReviewFieldChange = (field) => (event) => {
+    setReviewForm((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
+  };
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+    if (!reviewForm.bookingId) {
+      setErrorMsg('请选择一条已完成的订单来点评。');
+      return;
+    }
+    if (!reviewForm.comment.trim()) {
+      setErrorMsg('请填写点评内容。');
+      return;
+    }
+    setReviewBusy(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      await listingsApi.leaveReview(
+        listingId,
+        reviewForm.bookingId,
+        {
+          rating: Number(reviewForm.rating),
+          comment: reviewForm.comment.trim(),
+          createdBy: email,
+          createdAt: new Date().toISOString(),
+        },
+        token,
+      );
+      setSuccessMsg('感谢你的点评！');
+      setReviewForm((prev) => ({ ...prev, comment: '' }));
+      loadListing();
+    } catch (err) {
+      setErrorMsg(err.message || '无法提交点评。');
+    } finally {
+      setReviewBusy(false);
+    }
+  };
+
+  if (loading) {
+    return <p style={{ marginTop: '2rem' }}>正在加载房源...</p>;
+  }
+
+  if (!listing) {
+    return <p style={{ marginTop: '2rem' }}>未找到该房源。</p>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+      <button type="button" onClick={() => navigate(-1)} style={linkButtonStyle}>
+        ← 返回
+      </button>
+
+      <header style={cardStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', position: 'relative' }}>
+          <h1 style={{ margin: 0 }}>{listing.title}</h1>
+          <p style={mutedTextStyle}>{formatAddress(listing.address)}</p>
+          {searchDateRange && searchNights > 0 && (
+            <p style={{ ...mutedTextStyle, margin: 0 }}>
+              当前搜索：{searchDateRange.start} → {searchDateRange.end}（{searchNights} 晚）
+            </p>
+          )}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <span>类型：{listing.metadata?.propertyType || '未设置'}</span>
+            <span>卧室：{listing.metadata?.bedrooms ?? 0}</span>
+            <span>床位：{listing.metadata?.beds ?? 0}</span>
+            <span>卫浴：{listing.metadata?.bathrooms ?? 0}</span>
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-end', position: 'relative' }}>
+          <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700 }}>
+            {searchDateRange && searchNights > 0
+              ? `整段价格：$${searchNights * (listing.price || 0)}`
+              : `$${listing.price} / 晚`}
+          </p>
+          {searchDateRange && searchNights > 0 && (
+            <p style={{ margin: 0, color: '#6b7280' }}>（含每晚 ${listing.price}）</p>
+          )}
+          <button
+            type="button"
+            onMouseEnter={() => setShowRatingTooltip(true)}
+            onMouseLeave={() => setShowRatingTooltip(false)}
+            onFocus={() => setShowRatingTooltip(true)}
+            onBlur={() => setShowRatingTooltip(false)}
+            style={ratingSummaryButtonStyle}
+          >
+            ⭐ {rating ?? '暂无评分'}（{listing.reviews?.length ?? 0} 条点评）
+          </button>
+          {showRatingTooltip && (
+            <div style={ratingTooltipStyle} role="tooltip">
+              <p style={{ margin: 0, fontWeight: 600 }}>评分分布</p>
+              <ul style={ratingTooltipListStyle}>
+                {ratingBreakdown.map((item) => (
+                  <li key={item.score}>
+                    <button
+                      type="button"
+                      style={ratingTooltipItemButtonStyle}
+                      onClick={() =>
+                        setRatingModal({
+                          open: true,
+                          rating: item.score,
+                        })
+                      }
+                    >
+                      {item.score} 星 · {item.percent}% ({item.count})
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <section style={{ ...cardStyle, gap: '1rem' }}>
+        <div style={mediaGridStyle}>
+          {listing.metadata?.gallery?.length ? (
+            listing.metadata.gallery.map((image) => (
+              <img key={image} src={image} alt="房源图片" style={galleryImageStyle} />
+            ))
+          ) : (
+            <img src={listing.thumbnail} alt="房源缩略图" style={galleryImageStyle} />
+          )}
+        </div>
+        {listing.metadata?.description && <p>{listing.metadata.description}</p>}
+        {!!listing.metadata?.amenities?.length && (
+          <div>
