@@ -6,48 +6,43 @@ import {
   SuccessNotification,
 } from '../Common/Notification';
 export default function LoginPage() {
-    const { login } = useAuthContext();
-    const navigate = useNavigate();
-    const location = useLocation();
-  
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-  
-    const [errorMsg, setErrorMsg] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
-  
-    const fromPath = location.state?.from?.pathname || '/';
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      setErrorMsg('');
-      setSuccessMsg('');
-      try {
-        await login(email.trim(), password);
-        setSuccessMsg('Logged in successfully!');
-        navigate(fromPath, { replace: true });
-      } catch (err) {
-        setErrorMsg(err.message || 'Failed to login');
-      }
-    };
-  
-    return (
-      <div style={pageWrapperStyle}>
-        <section style={cardShellStyle}>
-          <div style={cardHeaderStyle}>
-            <h1 style={titleStyle}>Welcome back</h1>
-            <p style={subtitleStyle}>
-              Log in to manage your stays and your hosted listings.
-            </p>
-          </div>
-          <ErrorNotification
-          message={errorMsg}
-          onClose={() => setErrorMsg('')}
-        />
-        <SuccessNotification
-          message={successMsg}
-          onClose={() => setSuccessMsg('')}
-        />
+  const { login } = useAuthContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const fromPath = location.state?.from?.pathname || '/';
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      await login(email.trim(), password);
+      setSuccessMsg('Logged in successfully!');
+      navigate(fromPath, { replace: true });
+    } catch (err) {
+      setErrorMsg(err.message || 'Failed to login');
+    }
+  };
+
+  return (
+    <div style={pageWrapperStyle}>
+      <section style={cardShellStyle}>
+        <div style={cardHeaderStyle}>
+          <h1 style={titleStyle}>Welcome back</h1>
+          <p style={subtitleStyle}>
+            Log in to manage your stays and your hosted listings.
+          </p>
+        </div>
+
+        <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
+        <SuccessNotification message={successMsg} onClose={() => setSuccessMsg('')} />
 
         <form onSubmit={handleSubmit} style={formStyle} data-testid="login-form">
           <label style={labelStyle}>
