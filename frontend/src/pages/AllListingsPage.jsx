@@ -1,18 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ErrorNotification } from '../Common/Notification';
 import { useAuthContext } from '../context/AuthContext';
 import * as listingsApi from '../api/listings';
 import * as bookingsApi from '../api/bookings';
 
 const filterDefaults = {
+  searchTerm: '',
   bedroomsMin: '',
   bedroomsMax: '',
   bedroomsOrder: 'asc',
+  bedroomsEnabled: false,
   priceMin: '',
   priceMax: '',
   priceOrder: 'asc',
+  priceEnabled: false,
   dateStart: '',
   dateEnd: '',
   dateOrder: 'asc',
+  dateEnabled: false,
+  ratingOrder: 'desc',
+  ratingEnabled: false,
 };
 
 const bookingPriority = {
@@ -53,19 +61,19 @@ const ensureNumber = (value) => {
   return Number.isNaN(parsed) ? null : parsed;
 };
 
+const formatAddress = (address = {}) => {
+  const parts = [address.city, address.state, address.country].filter(Boolean);
+  return parts.length ? parts.join(', ') : '地点待更新';
+};
+
 export default function AllListingsPage() {
+  const navigate = useNavigate();
   const { token, email, isAuthenticated } = useAuthContext();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('none');
   const [filterDraft, setFilterDraft] = useState({ ...filterDefaults });
-  const [appliedFilters, setAppliedFilters] = useState({
-    term: '',
-    type: 'none',
-    data: { ...filterDefaults },
-  });
+  const [appliedFilters, setAppliedFilters] = useState({ ...filterDefaults });
   const [bookingMeta, setBookingMeta] = useState({});
 
   const loadListings = useCallback(async () => {
@@ -125,23 +133,23 @@ export default function AllListingsPage() {
     loadBookings();
   }, [loadBookings]);
 
-  const validateFilters = () => {
-    if (filterType === 'bedrooms') {
-      const min = ensureNumber(filterDraft.bedroomsMin);
-      const max = ensureNumber(filterDraft.bedroomsMax);
+  const validateFilters = (filters) => {
+    if (filters.bedroomsEnabled) {
+      const min = ensureNumber(filters.bedroomsMin);
+      const max = ensureNumber(filters.bedroomsMax);
       if (min !== null && max !== null && min > max) {
         return '卧室数量的最小值不能大于最大值';
       }
     }
-    if (filterType === 'price') {
-      const min = ensureNumber(filterDraft.priceMin);
-      const max = ensureNumber(filterDraft.priceMax);
+    if (filters.priceEnabled) {
+      const min = ensureNumber(filters.priceMin);
+      const max = ensureNumber(filters.priceMax);
       if (min !== null && max !== null && min > max) {
         return '价格区间的最小值不能大于最大值';
       }
     }
-    if (filterType === 'date') {
-      if (filterDraft.dateStart && filterDraft.dateEnd && filterDraft.dateStart > filterDraft.dateEnd) {
+    if (filters.dateEnabled) {
+      if (filters.dateStart && filters.dateEnd && filters.dateStart > filters.dateEnd) {
         return '请选择有效的起止日期';
       }
     }
@@ -150,57 +158,62 @@ export default function AllListingsPage() {
 
   const handleSearch = (event) => {
     event.preventDefault();
-    const validationMsg = validateFilters();
+    const validationMsg = validateFilters(filterDraft);
     if (validationMsg) {
       setErrorMsg(validationMsg);
       return;
     }
     setErrorMsg('');
-    setAppliedFilters({
-      term: searchTerm.trim(),
-      type: filterType,
-      data: { ...filterDraft },
-    });
+    const nextFilters = {
+      ...filterDraft,
+      searchTerm: filterDraft.searchTerm.trim(),
+    };
+    setFilterDraft(nextFilters);
+    setAppliedFilters(nextFilters);
   };
 
   const handleReset = () => {
-    setSearchTerm('');
-    setFilterType('none');
     setFilterDraft({ ...filterDefaults });
-    setAppliedFilters({
-      term: '',
-      type: 'none',
-      data: { ...filterDefaults },
-    });
+    setAppliedFilters({ ...filterDefaults });
     setErrorMsg('');
+  };
+
+  const handleDraftChange = (field) => (event) => {
+    const value = event.target.value;
+    setFilterDraft((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleToggleChange = (field) => (event) => {
+    const checked = event.target.checked;
+    setFilterDraft((prev) => ({
+      ...prev,
+      [field]: checked,
+    }));
   };
 
   const derivedListings = useMemo(() => {
     if (!listings.length) return [];
-    const appliedTerm = appliedFilters.term?.toLowerCase() ?? '';
+    const appliedTerm = appliedFilters.searchTerm?.toLowerCase() ?? '';
     let pool = listings.filter((listing) => {
       if (!matchesSearch(listing, appliedTerm)) return false;
-      if (appliedFilters.type === 'bedrooms') {
-        const min = ensureNumber(appliedFilters.data.bedroomsMin);
-        const max = ensureNumber(appliedFilters.data.bedroomsMax);
+      if (appliedFilters.bedroomsEnabled) {
+        const min = ensureNumber(appliedFilters.bedroomsMin);
+        const max = ensureNumber(appliedFilters.bedroomsMax);
         const count = listing.metadata?.bedrooms ?? 0;
         if (min !== null && count < min) return false;
         if (max !== null && count > max) return false;
       }
-      if (appliedFilters.type === 'price') {
-        const min = ensureNumber(appliedFilters.data.priceMin);
-        const max = ensureNumber(appliedFilters.data.priceMax);
+      if (appliedFilters.priceEnabled) {
+        const min = ensureNumber(appliedFilters.priceMin);
+        const max = ensureNumber(appliedFilters.priceMax);
         if (min !== null && listing.price < min) return false;
         if (max !== null && listing.price > max) return false;
       }
-      if (appliedFilters.type === 'date') {
-        if (
-          !hasAvailabilityForRange(
-            listing,
-            appliedFilters.data.dateStart,
-            appliedFilters.data.dateEnd,
-          )
-        ) {
+      if (appliedFilters.dateEnabled) {
+        if (!hasAvailabilityForRange(listing, appliedFilters.dateStart, appliedFilters.dateEnd)) {
           return false;
         }
       }
