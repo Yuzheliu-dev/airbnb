@@ -178,3 +178,144 @@ export default function HostedBookingManagementPage() {
       <SuccessNotification message={successMsg} onClose={() => setSuccessMsg('')} />
       <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
 
+      <section style={cardStyle}>
+        <h2 style={{ margin: 0 }}>待处理预订</h2>
+        {loading ? (
+          <p>正在加载...</p>
+        ) : pendingBookings.length ? (
+          <ul style={bookingListStyle}>
+            {pendingBookings.map((booking) => (
+              <li key={booking.id} style={bookingCardStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <strong>
+                    {new Date(booking.dateRange?.start || 0).toLocaleDateString()} →{' '}
+                    {new Date(booking.dateRange?.end || 0).toLocaleDateString()}
+                  </strong>
+                  <span>入住人：{booking.owner}</span>
+                  <span>总价：${booking.totalPrice}</span>
+                  <span>共 {calculateNights(booking.dateRange)} 晚</span>
+                </div>
+                <div style={bookingActionsStyle}>
+                  <button
+                    type="button"
+                    style={primaryButtonStyle}
+                    disabled={busyMap[booking.id]}
+                    onClick={() => handleBookingAction(booking.id, 'accept')}
+                  >
+                    {busyMap[booking.id] ? '提交中...' : '接受'}
+                  </button>
+                  <button
+                    type="button"
+                    style={dangerButtonStyle}
+                    disabled={busyMap[booking.id]}
+                    onClick={() => handleBookingAction(booking.id, 'decline')}
+                  >
+                    拒绝
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p style={{ color: '#6b7280' }}>暂无待处理请求。</p>
+        )}
+      </section>
+
+      <section style={cardStyle}>
+        <h2 style={{ margin: 0 }}>全部预订记录</h2>
+        {loading ? (
+          <p>正在加载...</p>
+        ) : historyBookings.length ? (
+          <ul style={bookingListStyle}>
+            {historyBookings.map((booking) => {
+              const colorSet = statusColors[booking.status] ?? statusColors.pending;
+              return (
+                <li key={`history-${booking.id}`} style={bookingCardStyle}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    <strong>
+                      {new Date(booking.dateRange?.start || 0).toLocaleDateString()} →{' '}
+                      {new Date(booking.dateRange?.end || 0).toLocaleDateString()}
+                    </strong>
+                    <span>入住人：{booking.owner}</span>
+                    <span>总价：${booking.totalPrice}</span>
+                  </div>
+                  <span
+                    style={{
+                      padding: '0.2rem 0.7rem',
+                      borderRadius: '999px',
+                      backgroundColor: colorSet.bg,
+                      color: colorSet.color,
+                      fontWeight: 600,
+                      alignSelf: 'flex-start',
+                    }}
+                  >
+                    {colorSet.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p style={{ color: '#6b7280' }}>暂无历史记录。</p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+const linkButtonStyle = {
+  alignSelf: 'flex-start',
+  border: '1px solid rgba(148,163,184,0.5)',
+  backgroundColor: '#fff',
+  padding: '0.4rem 0.8rem',
+  borderRadius: '999px',
+  cursor: 'pointer',
+};
+
+const primaryButtonStyle = {
+  border: 'none',
+  borderRadius: '999px',
+  padding: '0.45rem 0.9rem',
+  background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontSize: '0.85rem',
+};
+
+const dangerButtonStyle = {
+  border: '1px solid rgba(248,113,113,0.8)',
+  borderRadius: '999px',
+  padding: '0.4rem 0.9rem',
+  backgroundColor: '#fef2f2',
+  color: '#b91c1c',
+  cursor: 'pointer',
+  fontSize: '0.85rem',
+};
+
+const bookingListStyle = {
+  listStyle: 'none',
+  padding: 0,
+  margin: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.9rem',
+};
+
+const bookingCardStyle = {
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '16px',
+  padding: '1rem',
+  backgroundColor: '#fff',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '1rem',
+  flexWrap: 'wrap',
+};
+
+const bookingActionsStyle = {
+  display: 'flex',
+  gap: '0.6rem',
+  flexWrap: 'wrap',
+};
+
