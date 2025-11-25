@@ -265,20 +265,165 @@ export default function AllListingsPage() {
           搜索标题 / 城市
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={filterDraft.searchTerm}
+            onChange={handleDraftChange('searchTerm')}
             placeholder="Sydney / 海景 / Loft..."
           />
         </label>
-        <label style={simpleLabelStyle}>
-          筛选类型
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-            <option value="none">仅按标题排序</option>
-            <option value="bedrooms">卧室数量</option>
-            <option value="price">价格区间</option>
-            <option value="date">可入住日期</option>
-          </select>
-        </label>
+        <fieldset style={filterFieldsetStyle}>
+          <label style={filterToggleStyle}>
+            <input
+              type="checkbox"
+              checked={filterDraft.bedroomsEnabled}
+              onChange={handleToggleChange('bedroomsEnabled')}
+            />
+            按卧室数量
+          </label>
+          <div style={filterGridStyle}>
+            <label style={filterGroupLabelStyle}>
+              最少
+              <input
+                type="number"
+                min="0"
+                value={filterDraft.bedroomsMin}
+                onChange={handleDraftChange('bedroomsMin')}
+                disabled={!filterDraft.bedroomsEnabled}
+              />
+            </label>
+            <label style={filterGroupLabelStyle}>
+              最多
+              <input
+                type="number"
+                min="0"
+                value={filterDraft.bedroomsMax}
+                onChange={handleDraftChange('bedroomsMax')}
+                disabled={!filterDraft.bedroomsEnabled}
+              />
+            </label>
+            <label style={filterGroupLabelStyle}>
+              排序
+              <select
+                value={filterDraft.bedroomsOrder}
+                onChange={handleDraftChange('bedroomsOrder')}
+                disabled={!filterDraft.bedroomsEnabled}
+              >
+                <option value="asc">少 → 多</option>
+                <option value="desc">多 → 少</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset style={filterFieldsetStyle}>
+          <label style={filterToggleStyle}>
+            <input
+              type="checkbox"
+              checked={filterDraft.priceEnabled}
+              onChange={handleToggleChange('priceEnabled')}
+            />
+            按价格区间
+          </label>
+          <div style={filterGridStyle}>
+            <label style={filterGroupLabelStyle}>
+              最低 (AUD)
+              <input
+                type="number"
+                min="0"
+                value={filterDraft.priceMin}
+                onChange={handleDraftChange('priceMin')}
+                disabled={!filterDraft.priceEnabled}
+              />
+            </label>
+            <label style={filterGroupLabelStyle}>
+              最高 (AUD)
+              <input
+                type="number"
+                min="0"
+                value={filterDraft.priceMax}
+                onChange={handleDraftChange('priceMax')}
+                disabled={!filterDraft.priceEnabled}
+              />
+            </label>
+            <label style={filterGroupLabelStyle}>
+              排序
+              <select
+                value={filterDraft.priceOrder}
+                onChange={handleDraftChange('priceOrder')}
+                disabled={!filterDraft.priceEnabled}
+              >
+                <option value="asc">低 → 高</option>
+                <option value="desc">高 → 低</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset style={filterFieldsetStyle}>
+          <label style={filterToggleStyle}>
+            <input
+              type="checkbox"
+              checked={filterDraft.dateEnabled}
+              onChange={handleToggleChange('dateEnabled')}
+            />
+            按可入住日期
+          </label>
+          <div style={filterGridStyle}>
+            <label style={filterGroupLabelStyle}>
+              起始日期
+              <input
+                type="date"
+                value={filterDraft.dateStart}
+                onChange={handleDraftChange('dateStart')}
+                disabled={!filterDraft.dateEnabled}
+              />
+            </label>
+            <label style={filterGroupLabelStyle}>
+              结束日期
+              <input
+                type="date"
+                value={filterDraft.dateEnd}
+                onChange={handleDraftChange('dateEnd')}
+                disabled={!filterDraft.dateEnabled}
+              />
+            </label>
+            <label style={filterGroupLabelStyle}>
+              排序
+              <select
+                value={filterDraft.dateOrder}
+                onChange={handleDraftChange('dateOrder')}
+                disabled={!filterDraft.dateEnabled}
+              >
+                <option value="asc">最近上线优先</option>
+                <option value="desc">最远上线优先</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset style={filterFieldsetStyle}>
+          <label style={filterToggleStyle}>
+            <input
+              type="checkbox"
+              checked={filterDraft.ratingEnabled}
+              onChange={handleToggleChange('ratingEnabled')}
+            />
+            按评分排序
+          </label>
+          <div style={filterGridStyle}>
+            <label style={filterGroupLabelStyle}>
+              排序
+              <select
+                value={filterDraft.ratingOrder}
+                onChange={handleDraftChange('ratingOrder')}
+                disabled={!filterDraft.ratingEnabled}
+              >
+                <option value="desc">高 → 低</option>
+                <option value="asc">低 → 高</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
         <div style={simpleButtonRowStyle}>
           <button type="submit">搜索</button>
           <button type="button" onClick={handleReset}>
