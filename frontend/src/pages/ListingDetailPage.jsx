@@ -508,3 +508,161 @@ const cardStyle = {
   flexDirection: 'column',
   gap: '0.8rem',
   boxShadow: '0 16px 40px rgba(15,23,42,0.08)',
+};
+
+const mutedTextStyle = {
+  color: '#6b7280',
+};
+
+const primaryButtonStyle = {
+  padding: '0.65rem 1.2rem',
+  borderRadius: '999px',
+  border: 'none',
+  background: 'linear-gradient(135deg, #4f46e5, #6366f1, #ec4899)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontWeight: 600,
+  alignSelf: 'flex-start',
+};
+
+const linkButtonStyle = {
+  alignSelf: 'flex-start',
+  border: '1px solid rgba(148,163,184,0.5)',
+  backgroundColor: '#fff',
+  padding: '0.4rem 0.8rem',
+  borderRadius: '999px',
+  cursor: 'pointer',
+};
+
+const mediaGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: '0.8rem',
+};
+
+const galleryImageStyle = {
+  width: '100%',
+  height: 180,
+  objectFit: 'cover',
+  borderRadius: '14px',
+};
+
+const pillListStyle = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.4rem',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+};
+
+const pillItemStyle = {
+  padding: '0.3rem 0.8rem',
+  borderRadius: '999px',
+  backgroundColor: '#eef2ff',
+  color: '#3730a3',
+  fontSize: '0.8rem',
+};
+
+const bookingFormStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: '1rem',
+  alignItems: 'flex-end',
+};
+
+const formLabelStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.3rem',
+  fontSize: '0.85rem',
+  color: '#374151',
+};
+
+const bookingChipStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '0.9rem 1rem',
+  borderRadius: '14px',
+  border: '1px solid rgba(226,232,240,0.9)',
+  backgroundColor: '#fff',
+};
+
+const reviewFormStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+  gap: '1rem',
+};
+
+const reviewCardStyle = {
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '14px',
+  padding: '0.9rem 1rem',
+  backgroundColor: '#fff',
+};
+
+const ratingSummaryButtonStyle = {
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  color: '#6b7280',
+  cursor: 'pointer',
+  textDecoration: 'underline',
+  fontSize: '0.9rem',
+  position: 'relative',
+};
+
+const ratingTooltipStyle = {
+  position: 'absolute',
+  top: '110%',
+  right: 0,
+  backgroundColor: '#fff',
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '12px',
+  padding: '0.6rem 0.8rem',
+  boxShadow: '0 12px 30px rgba(15,23,42,0.15)',
+  zIndex: 10,
+  minWidth: 200,
+};
+
+const ratingTooltipListStyle = {
+  listStyle: 'none',
+  padding: 0,
+  margin: '0.4rem 0 0',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.2rem',
+};
+
+const ratingTooltipItemButtonStyle = {
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  textAlign: 'left',
+  cursor: 'pointer',
+  color: '#1d4ed8',
+};
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(15,23,42,0.35)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '1.5rem',
+  zIndex: 20,
+};
+
+const modalContentStyle = {
+  width: '100%',
+  maxWidth: 480,
+  backgroundColor: '#fff',
+  borderRadius: '18px',
+  padding: '1.2rem',
+  boxShadow: '0 25px 50px rgba(15,23,42,0.3)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.6rem',
+};
