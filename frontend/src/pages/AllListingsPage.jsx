@@ -562,3 +562,133 @@ const simpleButtonRowStyle = {
   display: 'flex',
   gap: '0.5rem',
 };
+
+const filterFieldsetStyle = {
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '16px',
+  padding: '0.9rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.6rem',
+};
+
+const filterToggleStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  fontWeight: 600,
+  fontSize: '0.85rem',
+  color: '#111827',
+};
+
+const filterGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+  gap: '0.6rem',
+};
+
+const filterGroupLabelStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.25rem',
+  fontSize: '0.8rem',
+  color: '#4b5563',
+};
+
+const activeChipsStyle = {
+  listStyle: 'none',
+  padding: 0,
+  margin: 0,
+  display: 'flex',
+  gap: '0.4rem',
+  flexWrap: 'wrap',
+};
+
+const listingsGridStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+};
+
+const listingCardStyle = {
+  display: 'flex',
+  gap: '1rem',
+  border: '1px solid rgba(226,232,240,0.9)',
+  borderRadius: '18px',
+  padding: '1rem',
+  backgroundColor: '#fff',
+  boxShadow: '0 12px 28px rgba(15,23,42,0.05)',
+};
+
+const thumbnailWrapperStyle = {
+  width: 160,
+  height: 120,
+  borderRadius: '14px',
+  overflow: 'hidden',
+  position: 'relative',
+  flexShrink: 0,
+};
+
+const listingThumbnailStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+};
+
+const statusPillStyle = {
+  position: 'absolute',
+  top: 8,
+  left: 8,
+  padding: '0.2rem 0.6rem',
+  borderRadius: '999px',
+  backgroundColor: '#fef3c7',
+  color: '#92400e',
+  fontSize: '0.7rem',
+  fontWeight: 600,
+};
+
+const cardHeaderStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '0.5rem',
+};
+
+const cardTitleStyle = {
+  margin: 0,
+  fontSize: '1rem',
+};
+
+const ratingStyle = {
+  fontSize: '0.85rem',
+  color: '#f97316',
+};
+
+const addressStyle = {
+  margin: 0,
+  fontSize: '0.85rem',
+  color: '#6b7280',
+};
+
+const cardStatsRowStyle = {
+  display: 'flex',
+  gap: '0.8rem',
+  flexWrap: 'wrap',
+  fontSize: '0.85rem',
+};
+
+const cardFooterRowStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+
+const detailButtonStyle = {
+  border: 'none',
+  borderRadius: '999px',
+  padding: '0.45rem 0.9rem',
+  background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
+  color: '#fff',
+  cursor: 'pointer',
+  fontWeight: 600,
+};
