@@ -62,6 +62,99 @@ const parseGallery = (value) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const ensureString = (value, fieldLabel) => {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`${fieldLabel} 字段在 JSON 中是必填项。`);
+  }
+  return value.trim();
+};
+
+const ensurePositiveNumber = (value, fieldLabel) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    throw new Error(`${fieldLabel} 必须是大于 0 的数字。`);
+  }
+  return numeric;
+};
+
+const ensureNumber = (value, fallback = 0) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return numeric;
+};
+
+const validateListingJson = (data) => {
+  if (!data || typeof data !== 'object') {
+    throw new Error('JSON 内容必须是一个对象。');
+  }
+  const title = ensureString(data.title, 'title');
+  const price = ensurePositiveNumber(data.price, 'price');
+  const thumbnail = typeof data.thumbnail === 'string' ? data.thumbnail.trim() : '';
+
+  if (!data.address || typeof data.address !== 'object') {
+    throw new Error('address 字段缺失或格式不正确。');
+  }
+  const address = {
+    line1: ensureString(data.address.line1, 'address.line1'),
+    city: ensureString(data.address.city, 'address.city'),
+    state: typeof data.address.state === 'string' ? data.address.state.trim() : '',
+    country: ensureString(data.address.country, 'address.country'),
+  };
+
+  if (!data.metadata || typeof data.metadata !== 'object') {
+    throw new Error('metadata 字段缺失或格式不正确。');
+  }
+
+  const metadata = {
+    propertyType: ensureString(data.metadata.propertyType, 'metadata.propertyType'),
+    bedrooms: ensureNumber(data.metadata.bedrooms, 1),
+    beds: ensureNumber(data.metadata.beds, 1),
+    bathrooms: ensureNumber(data.metadata.bathrooms, 1),
+    amenities: Array.isArray(data.metadata.amenities) ? data.metadata.amenities : [],
+    description: typeof data.metadata.description === 'string' ? data.metadata.description : '',
+    gallery: Array.isArray(data.metadata.gallery) ? data.metadata.gallery : [],
+    thumbnailVideoUrl:
+      typeof data.metadata.thumbnailVideoUrl === 'string' ? data.metadata.thumbnailVideoUrl : '',
+  };
+
+  metadata.amenities.forEach((item, index) => {
+    if (typeof item !== 'string') {
+      throw new Error(`metadata.amenities[${index}] 必须为字符串。`);
+    }
+  });
+  metadata.gallery.forEach((item, index) => {
+    if (typeof item !== 'string') {
+      throw new Error(`metadata.gallery[${index}] 必须为字符串。`);
+    }
+  });
+
+  return {
+    title,
+    price,
+    thumbnail,
+    address,
+    metadata,
+  };
+};
+
+const mapListingJsonToFormState = (listing) => ({
+  title: listing.title,
+  addressLine1: listing.address.line1,
+  city: listing.address.city,
+  state: listing.address.state,
+  country: listing.address.country,
+  price: listing.price.toString(),
+  thumbnail: listing.thumbnail,
+  propertyType: listing.metadata.propertyType,
+  bedrooms: listing.metadata.bedrooms,
+  beds: listing.metadata.beds,
+  bathrooms: listing.metadata.bathrooms,
+  amenities: (listing.metadata.amenities || []).join(', '),
+  description: listing.metadata.description,
+  gallery: (listing.metadata.gallery || []).join('\n'),
+  youtubeUrl: listing.metadata.thumbnailVideoUrl,
+});
+
 const buildEmptyProfitSeries = () => Array.from({ length: PROFIT_WINDOW_DAYS }, () => 0);
 
 export default function HostedListingsPage({ mode = 'list' }) {
@@ -229,6 +322,42 @@ export default function HostedListingsPage({ mode = 'list' }) {
         thumbnailVideoUrl: videoUrl || null,
       },
     };
+  };
+
+  const handleJsonUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const resetInput = () => {
+      // allow uploading the same file twice
+      event.target.value = '';
+    };
+    if (file.type && !file.type.includes('json') && !file.name.endsWith('.json')) {
+      setErrorMsg('请上传 .json 文件。');
+      resetInput();
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const listing = validateListingJson(parsed);
+        setFormState((prev) => ({
+          ...prev,
+          ...mapListingJsonToFormState(listing),
+        }));
+        setErrorMsg('');
+        setSuccessMsg('JSON 数据已载入到表单，可继续调整后提交。');
+      } catch (err) {
+        setErrorMsg(err.message || 'JSON 文件内容无效。');
+      } finally {
+        resetInput();
+      }
+    };
+    reader.onerror = () => {
+      setErrorMsg('读取 JSON 文件失败，请重试。');
+      resetInput();
+    };
+    reader.readAsText(file, 'utf-8');
   };
 
   const handleCreate = async (event) => {
@@ -530,6 +659,18 @@ export default function HostedListingsPage({ mode = 'list' }) {
               style={inputStyle}
               placeholder="https://www.youtube.com/embed/..."
             />
+          </label>
+          <label style={formLabelStyle}>
+            <span>或上传 JSON 文件自动填充</span>
+            <input
+              type="file"
+              accept=".json,application/json"
+              onChange={handleJsonUpload}
+              style={{ ...inputStyle, padding: '0.3rem 0.6rem' }}
+            />
+            <small style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+              请选择符合模板的 2.6.json 文件，我们会在提交前校验。
+            </small>
           </label>
         </div>
         <fieldset style={fieldsetStyle}>
