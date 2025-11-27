@@ -5,20 +5,20 @@ import { ErrorNotification, SuccessNotification } from '../Common/Notification';
 describe('Notification components', () => {
   it('displays error text and calls close handler', () => {
     const onClose = vi.fn();
-    render(<ErrorNotification message="登录失败" onClose={onClose} />);
+    render(<ErrorNotification message="Login failed" onClose={onClose} />);
 
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText('登录失败')).toBeInTheDocument();
+    expect(screen.getByText('Login failed')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Close error message'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('renders success info without close button when handler missing', () => {
-    render(<SuccessNotification message="操作成功" />);
+    render(<SuccessNotification message="Operation successful" />);
 
     expect(screen.getByText('Success')).toBeInTheDocument();
-    expect(screen.getByText('操作成功')).toBeInTheDocument();
+    expect(screen.getByText('Operation successful')).toBeInTheDocument();
     expect(screen.queryByLabelText('Close success message')).not.toBeInTheDocument();
   });
 });
