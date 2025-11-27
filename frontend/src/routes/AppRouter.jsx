@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -7,6 +8,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationsContext';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import HostedListingsPage from '../pages/HostedListingsPage';
@@ -29,11 +31,48 @@ function RequireAuth({ children }) {
 function MainLayout({ children }) {
   const { isAuthenticated, email, logout } = useAuthContext();
   const navigate = useNavigate();
+  const { notifications, unreadCount, markAllAsRead, dismissNotification } = useNotifications();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsRef = useRef(null);
+
+  useEffect(() => {
+    if (!notificationsOpen) return undefined;
+    const handleClick = (event) => {
+      if (!notificationsRef.current) return;
+      if (!notificationsRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [notificationsOpen]);
+
+  useEffect(() => {
+    if (notificationsOpen) {
+      markAllAsRead();
+    }
+  }, [notificationsOpen, markAllAsRead]);
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
+
+  const formatTimestamp = (value) => {
+    if (!value) return '';
+    try {
+      return new Date(value).toLocaleString();
+    } catch {
+      return value;
+    }
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsOpen((prev) => !prev);
+  };
+
   return (
     <div
       style={{
@@ -114,14 +153,75 @@ function MainLayout({ children }) {
           </button>
 
           {isAuthenticated && (
-            <button
-              type="button"
-              aria-label="Go to hosted listings"
-              onClick={() => navigate('/host/listings')}
-              style={navButtonStyle(false)}
-            >
-              Hosted Listings
-            </button>
+            <>
+              <button
+                type="button"
+                aria-label="Go to hosted listings"
+                onClick={() => navigate('/host/listings')}
+                style={navButtonStyle(false)}
+              >
+                Hosted Listings
+              </button>
+              <div style={{ position: 'relative' }} ref={notificationsRef}>
+                <button
+                  type="button"
+                  aria-label="Open notifications panel"
+                  onClick={toggleNotifications}
+                  style={notificationsButtonStyle(unreadCount)}
+                >
+                  🔔
+                  {unreadCount > 0 && (
+                    <span style={notificationsBadgeStyle}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  )}
+                </button>
+                {notificationsOpen && (
+                  <div style={notificationsPanelStyle}>
+                    <div style={notificationsHeaderStyle}>
+                      <strong>通知</strong>
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                        {notifications.length ? `共 ${notifications.length} 条` : '暂无'}
+                      </span>
+                    </div>
+                    {notifications.length ? (
+                      <ul style={notificationsListStyle}>
+                        {notifications.map((notification) => (
+                          <li
+                            key={notification.id}
+                            style={{
+                              ...notificationItemStyle,
+                              backgroundColor: notification.read ? '#fff' : '#eef2ff',
+                            }}
+                          >
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                {notification.type === 'host' ? '房东提醒' : '预订提醒'}
+                              </span>
+                              <strong style={{ fontSize: '0.9rem' }}>{notification.message}</strong>
+                              {notification.detail && (
+                                <span style={{ fontSize: '0.8rem', color: '#4b5563' }}>{notification.detail}</span>
+                              )}
+                              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                {formatTimestamp(notification.createdAt)}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              style={notificationDismissButtonStyle}
+                              onClick={() => dismissNotification(notification.id)}
+                              aria-label="移除通知"
+                            >
+                              ×
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>暂无通知</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
           )}
           {isAuthenticated ? (
             <>
@@ -240,6 +340,83 @@ const navPrimaryButtonStyle = {
     'linear-gradient(135deg, #4f46e5, #6366f1, #ec4899)',
   color: '#ffffff',
   border: 'none',
+};
+
+const notificationsButtonStyle = (hasUnread) => ({
+  ...navButtonBase,
+  position: 'relative',
+  fontSize: '1.1rem',
+  borderColor: hasUnread ? 'rgba(248,113,113,0.8)' : 'rgba(148,163,184,0.5)',
+});
+
+const notificationsBadgeStyle = {
+  position: 'absolute',
+  top: -6,
+  right: -2,
+  minWidth: 18,
+  height: 18,
+  borderRadius: '999px',
+  backgroundColor: '#ef4444',
+  color: '#fff',
+  fontSize: '0.7rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0 4px',
+  fontWeight: 600,
+};
+
+const notificationsPanelStyle = {
+  position: 'absolute',
+  top: '120%',
+  right: 0,
+  width: 320,
+  maxHeight: 360,
+  padding: '0.9rem',
+  borderRadius: '16px',
+  border: '1px solid rgba(226,232,240,0.9)',
+  backgroundColor: '#fff',
+  boxShadow: '0 25px 45px rgba(15,23,42,0.18)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.6rem',
+  zIndex: 20,
+};
+
+const notificationsHeaderStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+};
+
+const notificationsListStyle = {
+  listStyle: 'none',
+  padding: 0,
+  margin: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.6rem',
+  maxHeight: 250,
+  overflowY: 'auto',
+};
+
+const notificationItemStyle = {
+  borderRadius: '12px',
+  border: '1px solid rgba(226,232,240,0.9)',
+  padding: '0.7rem 0.8rem',
+  display: 'flex',
+  gap: '0.6rem',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+};
+
+const notificationDismissButtonStyle = {
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  color: '#94a3b8',
+  fontSize: '1rem',
+  padding: 0,
 };
 
 export default function AppRouter() {
