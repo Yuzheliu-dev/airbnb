@@ -1,0 +1,25 @@
+{
+  "title": "Harbour View Loft",
+  "price": 240,
+  "thumbnail": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=80",
+  "address": {
+    "line1": "12 Harbour Street",
+    "city": "Sydney",
+    "state": "NSW",
+    "country": "Australia"
+  },
+  "metadata": {
+    "propertyType": "Apartment",
+    "bedrooms": 2,
+    "beds": 3,
+    "bathrooms": 2,
+    "amenities": ["WiFi", "Parking", "Air Conditioning", "Pool"],
+    "description": "落地窗可直视悉尼海港，全屋采用智能家居系统，适合商务及度假旅客。",
+    "gallery": [
+      "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=900&q=80"
+    ],
+    "thumbnailVideoUrl": "https://www.youtube.com/embed/ysz5S6PUM-U"
+  }
+}
+
