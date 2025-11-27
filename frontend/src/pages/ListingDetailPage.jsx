@@ -84,7 +84,7 @@ export default function ListingDetailPage() {
       const { listing: data } = await listingsApi.getListingById(listingId);
       setListing(data);
     } catch (err) {
-      setErrorMsg(err.message || '无法加载房源详情');
+      setErrorMsg(err.message || 'Unable to load listing details.');
     } finally {
       setLoading(false);
     }
@@ -148,6 +148,8 @@ export default function ListingDetailPage() {
     }));
   }, [listing]);
 
+  const reviewCount = listing?.reviews?.length ?? 0;
+
   const filteredModalReviews = useMemo(() => {
     if (!ratingModal.open || !listing?.reviews?.length) return [];
     return listing.reviews.filter(
@@ -165,19 +167,19 @@ export default function ListingDetailPage() {
   const handleBookingSubmit = async (event) => {
     event.preventDefault();
     if (!isAuthenticated) {
-      setErrorMsg('请先登录再进行预订。');
+      setErrorMsg('Please log in before making a booking.');
       return;
     }
     if (!bookingForm.start || !bookingForm.end) {
-      setErrorMsg('请选择完整的入住日期。');
+      setErrorMsg('Please select both check-in and check-out dates.');
       return;
     }
     if (!isRangeWithinAvailability(listing, bookingForm.start, bookingForm.end)) {
-      setErrorMsg('选定日期不在可预订范围内。');
+      setErrorMsg('Selected dates are outside the available ranges.');
       return;
     }
     if (!totalNights) {
-      setErrorMsg('请选择至少一晚。');
+      setErrorMsg('Please select at least one night.');
       return;
     }
     setBookingBusy(true);
@@ -193,11 +195,11 @@ export default function ListingDetailPage() {
         totalPrice,
         token,
       );
-      setSuccessMsg('预订请求已发送，等待房东处理。');
+      setSuccessMsg('Booking request sent. Waiting for host response.');
       setBookingForm(initialBookingForm);
       loadUserBookings();
     } catch (err) {
-      setErrorMsg(err.message || '预订失败，请稍后重试。');
+      setErrorMsg(err.message || 'Booking failed. Please try again later.');
     } finally {
       setBookingBusy(false);
     }
@@ -218,11 +220,11 @@ export default function ListingDetailPage() {
   const handleReviewSubmit = async (event) => {
     event.preventDefault();
     if (!reviewForm.bookingId) {
-      setErrorMsg('请选择一条已完成的订单来点评。');
+      setErrorMsg('Please select a completed booking to review.');
       return;
     }
     if (!reviewForm.comment.trim()) {
-      setErrorMsg('请填写点评内容。');
+      setErrorMsg('Please enter your review.');
       return;
     }
     setReviewBusy(true);
@@ -240,28 +242,28 @@ export default function ListingDetailPage() {
         },
         token,
       );
-      setSuccessMsg('感谢你的点评！');
+      setSuccessMsg('Thanks for your review!');
       setReviewForm((prev) => ({ ...prev, comment: '' }));
       loadListing();
     } catch (err) {
-      setErrorMsg(err.message || '无法提交点评。');
+      setErrorMsg(err.message || 'Unable to submit review.');
     } finally {
       setReviewBusy(false);
     }
   };
 
   if (loading) {
-    return <p style={{ marginTop: '2rem' }}>正在加载房源...</p>;
+    return <p style={{ marginTop: '2rem' }}>Loading listing...</p>;
   }
 
   if (!listing) {
-    return <p style={{ marginTop: '2rem' }}>未找到该房源。</p>;
+    return <p style={{ marginTop: '2rem' }}>Listing not found.</p>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
       <button type="button" onClick={() => navigate(-1)} style={linkButtonStyle}>
-        ← 返回
+        ← Back
       </button>
 
       <header style={cardStyle}>
@@ -270,24 +272,26 @@ export default function ListingDetailPage() {
           <p style={mutedTextStyle}>{formatAddress(listing.address)}</p>
           {searchDateRange && searchNights > 0 && (
             <p style={{ ...mutedTextStyle, margin: 0 }}>
-              当前搜索：{searchDateRange.start} → {searchDateRange.end}（{searchNights} 晚）
+              Current search: {searchDateRange.start} → {searchDateRange.end} ({searchNights} nights)
             </p>
           )}
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <span>类型：{listing.metadata?.propertyType || '未设置'}</span>
-            <span>卧室：{listing.metadata?.bedrooms ?? 0}</span>
-            <span>床位：{listing.metadata?.beds ?? 0}</span>
-            <span>卫浴：{listing.metadata?.bathrooms ?? 0}</span>
+            <span>Type: {listing.metadata?.propertyType || 'Not set'}</span>
+            <span>Bedrooms: {listing.metadata?.bedrooms ?? 0}</span>
+            <span>Beds: {listing.metadata?.beds ?? 0}</span>
+            <span>Baths: {listing.metadata?.bathrooms ?? 0}</span>
           </div>
         </div>
         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-end', position: 'relative' }}>
           <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700 }}>
             {searchDateRange && searchNights > 0
-              ? `整段价格：$${searchNights * (listing.price || 0)}`
-              : `$${listing.price} / 晚`}
+              ? `Stay total: $${searchNights * (listing.price || 0)}`
+              : `$${listing.price} / night`}
           </p>
           {searchDateRange && searchNights > 0 && (
-            <p style={{ margin: 0, color: '#6b7280' }}>（含每晚 ${listing.price}）</p>
+            <p style={{ margin: 0, color: '#6b7280' }}>
+              (includes nightly rate ${listing.price})
+            </p>
           )}
           <button
             type="button"
@@ -297,11 +301,11 @@ export default function ListingDetailPage() {
             onBlur={() => setShowRatingTooltip(false)}
             style={ratingSummaryButtonStyle}
           >
-            ⭐ {rating ?? '暂无评分'}（{listing.reviews?.length ?? 0} 条点评）
+            ⭐ {rating ?? 'No rating yet'} ({reviewCount} review{reviewCount === 1 ? '' : 's'})
           </button>
           {showRatingTooltip && (
             <div style={ratingTooltipStyle} role="tooltip">
-              <p style={{ margin: 0, fontWeight: 600 }}>评分分布</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>Rating breakdown</p>
               <ul style={ratingTooltipListStyle}>
                 {ratingBreakdown.map((item) => (
                   <li key={item.score}>
@@ -315,7 +319,7 @@ export default function ListingDetailPage() {
                         })
                       }
                     >
-                      {item.score} 星 · {item.percent}% ({item.count})
+                      {item.score} stars · {item.percent}% ({item.count})
                     </button>
                   </li>
                 ))}
@@ -329,16 +333,16 @@ export default function ListingDetailPage() {
         <div style={mediaGridStyle}>
           {listing.metadata?.gallery?.length ? (
             listing.metadata.gallery.map((image) => (
-              <img key={image} src={image} alt="房源图片" style={galleryImageStyle} />
+              <img key={image} src={image} alt="Listing image" style={galleryImageStyle} />
             ))
           ) : (
-            <img src={listing.thumbnail} alt="房源缩略图" style={galleryImageStyle} />
+            <img src={listing.thumbnail} alt="Listing thumbnail" style={galleryImageStyle} />
           )}
         </div>
         {listing.metadata?.description && <p>{listing.metadata.description}</p>}
         {!!listing.metadata?.amenities?.length && (
           <div>
-            <h3 style={{ margin: '0 0 0.4rem' }}>设施</h3>
+            <h3 style={{ margin: '0 0 0.4rem' }}>Amenities</h3>
             <ul style={pillListStyle}>
               {listing.metadata.amenities.map((item) => (
                 <li key={item} style={pillItemStyle}>
@@ -354,32 +358,32 @@ export default function ListingDetailPage() {
       <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>立即预订</h2>
+        <h2 style={{ marginTop: 0 }}>Book now</h2>
         <form onSubmit={handleBookingSubmit} style={bookingFormStyle}>
           <label style={formLabelStyle}>
-            入住日期
+            Check-in date
             <input type="date" value={bookingForm.start} onChange={handleBookingFieldChange('start')} />
           </label>
           <label style={formLabelStyle}>
-            退房日期
+            Check-out date
             <input type="date" value={bookingForm.end} onChange={handleBookingFieldChange('end')} />
           </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <span>共 {totalNights} 晚</span>
-            <strong>预计总价：${totalPrice}</strong>
+            <span>Total {totalNights} night{totalNights === 1 ? '' : 's'}</span>
+            <strong>Estimated total: ${totalPrice}</strong>
           </div>
           <button type="submit" style={primaryButtonStyle} disabled={bookingBusy}>
-            {bookingBusy ? '提交中...' : '发送预订请求'}
+            {bookingBusy ? 'Submitting...' : 'Send booking request'}
           </button>
         </form>
         {!listing.availability?.length && (
-          <p style={mutedTextStyle}>房源暂未发布可用日期，无法预订。</p>
+          <p style={mutedTextStyle}>This listing has no published availability yet.</p>
         )}
       </section>
 
       {userBookings.length > 0 && (
         <section style={cardStyle}>
-          <h2 style={{ marginTop: 0 }}>我的订单</h2>
+          <h2 style={{ marginTop: 0 }}>My bookings</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {userBookings.map((booking) => (
               <li key={booking.id} style={bookingChipStyle}>
@@ -388,9 +392,9 @@ export default function ListingDetailPage() {
                     {new Date(booking.dateRange.start).toLocaleDateString()} →{' '}
                     {new Date(booking.dateRange.end).toLocaleDateString()}
                   </strong>
-                  <p style={{ margin: 0, color: '#6b7280' }}>状态：{booking.status}</p>
+                  <p style={{ margin: 0, color: '#6b7280' }}>Status: {booking.status}</p>
                 </div>
-                <span>总价：${booking.totalPrice}</span>
+                <span>Total: ${booking.totalPrice}</span>
               </li>
             ))}
           </ul>
@@ -399,12 +403,12 @@ export default function ListingDetailPage() {
 
       {acceptedBookings.length > 0 && (
         <section style={cardStyle}>
-          <h2 style={{ marginTop: 0 }}>留下点评</h2>
+          <h2 style={{ marginTop: 0 }}>Leave a review</h2>
           <form onSubmit={handleReviewSubmit} style={reviewFormStyle}>
             <label style={formLabelStyle}>
-              选择订单
+              Select booking
               <select value={reviewForm.bookingId} onChange={handleReviewFieldChange('bookingId')}>
-                <option value="">请选择</option>
+                <option value="">Select booking</option>
                 {acceptedBookings.map((booking) => (
                   <option key={booking.id} value={booking.id}>
                     #{booking.id} · {new Date(booking.dateRange.start).toLocaleDateString()}
@@ -413,7 +417,7 @@ export default function ListingDetailPage() {
               </select>
             </label>
             <label style={formLabelStyle}>
-              评分
+              Rating
               <input
                 type="number"
                 min="1"
@@ -423,38 +427,38 @@ export default function ListingDetailPage() {
               />
             </label>
             <label style={{ ...formLabelStyle, gridColumn: 'span 2' }}>
-              点评
+              Comment
               <textarea
                 value={reviewForm.comment}
                 onChange={handleReviewFieldChange('comment')}
                 rows={3}
-                placeholder="分享你的入住体验..."
+                placeholder="Share your stay experience..."
               />
             </label>
             <button type="submit" style={primaryButtonStyle} disabled={reviewBusy}>
-              {reviewBusy ? '提交中...' : '提交点评'}
+              {reviewBusy ? 'Submitting...' : 'Submit review'}
             </button>
           </form>
         </section>
       )}
 
       <section style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>住客点评</h2>
+        <h2 style={{ marginTop: 0 }}>Guest reviews</h2>
         {listing.reviews?.length ? (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {listing.reviews.map((review, index) => (
               <li key={`${review.comment}-${index}`} style={reviewCardStyle}>
                 <strong>⭐ {review.rating ?? 'N/A'}</strong>
-                <p style={{ margin: '0.2rem 0' }}>{review.comment || '无文字评论'}</p>
+                <p style={{ margin: '0.2rem 0' }}>{review.comment || 'No written comment'}</p>
                 <small style={mutedTextStyle}>
-                  {review.createdBy || '匿名'} ·{' '}
-                  {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '刚刚'}
+                  {review.createdBy || 'Anonymous'} ·{' '}
+                  {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Just now'}
                 </small>
               </li>
             ))}
           </ul>
         ) : (
-          <p style={mutedTextStyle}>暂无点评。</p>
+          <p style={mutedTextStyle}>No reviews yet.</p>
         )}
       </section>
 
@@ -463,9 +467,9 @@ export default function ListingDetailPage() {
           <div style={modalContentStyle}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ margin: 0 }}>{ratingModal.rating} 星点评</h3>
+                <h3 style={{ margin: 0 }}>{ratingModal.rating}-star reviews</h3>
                 <p style={{ ...mutedTextStyle, margin: 0 }}>
-                  共 {filteredModalReviews.length} 条
+                  Total {filteredModalReviews.length} review{filteredModalReviews.length === 1 ? '' : 's'}
                 </p>
               </div>
               <button
@@ -473,7 +477,7 @@ export default function ListingDetailPage() {
                 style={linkButtonStyle}
                 onClick={() => setRatingModal({ open: false, rating: null })}
               >
-                关闭
+                Close
               </button>
             </header>
             <div style={{ maxHeight: 320, overflow: 'auto', marginTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
@@ -481,15 +485,15 @@ export default function ListingDetailPage() {
                 filteredModalReviews.map((review, index) => (
                   <article key={`modal-review-${index}`} style={reviewCardStyle}>
                     <strong>⭐ {review.rating ?? 'N/A'}</strong>
-                    <p style={{ margin: '0.2rem 0' }}>{review.comment || '无文字评论'}</p>
+                    <p style={{ margin: '0.2rem 0' }}>{review.comment || 'No written comment'}</p>
                     <small style={mutedTextStyle}>
-                      {review.createdBy || '匿名'} ·{' '}
-                      {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '刚刚'}
+                      {review.createdBy || 'Anonymous'} ·{' '}
+                      {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Just now'}
                     </small>
                   </article>
                 ))
               ) : (
-                <p style={mutedTextStyle}>暂无该评分的点评。</p>
+                <p style={mutedTextStyle}>No reviews for this rating.</p>
               )}
             </div>
           </div>

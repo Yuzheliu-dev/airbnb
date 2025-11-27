@@ -64,7 +64,7 @@ const parseGallery = (value) =>
 
 const ensureString = (value, fieldLabel) => {
   if (typeof value !== 'string' || !value.trim()) {
-    throw new Error(`${fieldLabel} 字段在 JSON 中是必填项。`);
+    throw new Error(`${fieldLabel} is required in the JSON payload.`);
   }
   return value.trim();
 };
@@ -72,7 +72,7 @@ const ensureString = (value, fieldLabel) => {
 const ensurePositiveNumber = (value, fieldLabel) => {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric <= 0) {
-    throw new Error(`${fieldLabel} 必须是大于 0 的数字。`);
+    throw new Error(`${fieldLabel} must be a number greater than 0.`);
   }
   return numeric;
 };
@@ -85,14 +85,14 @@ const ensureNumber = (value, fallback = 0) => {
 
 const validateListingJson = (data) => {
   if (!data || typeof data !== 'object') {
-    throw new Error('JSON 内容必须是一个对象。');
+    throw new Error('JSON content must be an object.');
   }
   const title = ensureString(data.title, 'title');
   const price = ensurePositiveNumber(data.price, 'price');
   const thumbnail = typeof data.thumbnail === 'string' ? data.thumbnail.trim() : '';
 
   if (!data.address || typeof data.address !== 'object') {
-    throw new Error('address 字段缺失或格式不正确。');
+    throw new Error('address field is missing or invalid.');
   }
   const address = {
     line1: ensureString(data.address.line1, 'address.line1'),
@@ -102,7 +102,7 @@ const validateListingJson = (data) => {
   };
 
   if (!data.metadata || typeof data.metadata !== 'object') {
-    throw new Error('metadata 字段缺失或格式不正确。');
+    throw new Error('metadata field is missing or invalid.');
   }
 
   const metadata = {
@@ -119,12 +119,12 @@ const validateListingJson = (data) => {
 
   metadata.amenities.forEach((item, index) => {
     if (typeof item !== 'string') {
-      throw new Error(`metadata.amenities[${index}] 必须为字符串。`);
+      throw new Error(`metadata.amenities[${index}] must be a string.`);
     }
   });
   metadata.gallery.forEach((item, index) => {
     if (typeof item !== 'string') {
-      throw new Error(`metadata.gallery[${index}] 必须为字符串。`);
+      throw new Error(`metadata.gallery[${index}] must be a string.`);
     }
   });
 
@@ -332,7 +332,7 @@ export default function HostedListingsPage({ mode = 'list' }) {
       event.target.value = '';
     };
     if (file.type && !file.type.includes('json') && !file.name.endsWith('.json')) {
-      setErrorMsg('请上传 .json 文件。');
+      setErrorMsg('Please upload a .json file.');
       resetInput();
       return;
     }
@@ -346,15 +346,15 @@ export default function HostedListingsPage({ mode = 'list' }) {
           ...mapListingJsonToFormState(listing),
         }));
         setErrorMsg('');
-        setSuccessMsg('JSON 数据已载入到表单，可继续调整后提交。');
+        setSuccessMsg('JSON data loaded into the form. Please review before submitting.');
       } catch (err) {
-        setErrorMsg(err.message || 'JSON 文件内容无效。');
+        setErrorMsg(err.message || 'JSON file content is invalid.');
       } finally {
         resetInput();
       }
     };
     reader.onerror = () => {
-      setErrorMsg('读取 JSON 文件失败，请重试。');
+      setErrorMsg('Failed to read JSON file. Please try again.');
       resetInput();
     };
     reader.readAsText(file, 'utf-8');
@@ -661,7 +661,7 @@ export default function HostedListingsPage({ mode = 'list' }) {
             />
           </label>
           <label style={formLabelStyle}>
-            <span>或上传 JSON 文件自动填充</span>
+            <span>Or upload a JSON file to auto-fill</span>
             <input
               type="file"
               accept=".json,application/json"
@@ -669,7 +669,7 @@ export default function HostedListingsPage({ mode = 'list' }) {
               style={{ ...inputStyle, padding: '0.3rem 0.6rem' }}
             />
             <small style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-              请选择符合模板的 2.6.json 文件，我们会在提交前校验。
+              Please select a valid 2.6.json template file. We will validate it before submission.
             </small>
           </label>
         </div>
@@ -942,13 +942,17 @@ export default function HostedListingsPage({ mode = 'list' }) {
       <section style={cardContainerStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem' }}>
           <div>
-            <h2 style={{ margin: 0 }}>最近 30 天收益</h2>
-            <p style={{ ...mutedTextStyle, margin: 0 }}>X 轴为距离今天的天数，Y 轴为每天结算的收益 (AUD)</p>
+            <h2 style={{ margin: 0 }}>Revenue in the last 30 days</h2>
+            <p style={{ ...mutedTextStyle, margin: 0 }}>
+              X-axis: days ago (0-30). Y-axis: revenue settled per day (AUD).
+            </p>
           </div>
-          <strong style={{ fontSize: '1.2rem' }}>总收益：${Math.round(totalProfitLastMonth)}</strong>
+          <strong style={{ fontSize: '1.2rem' }}>
+            Total revenue: ${Math.round(totalProfitLastMonth)}
+          </strong>
         </div>
         {profitLoading ? (
-          <p style={mutedTextStyle}>正在生成图表...</p>
+          <p style={mutedTextStyle}>Rendering chart...</p>
         ) : profitSeries.some((value) => value > 0) ? (
           <div style={profitChartStyle}>
             {profitSeries.map((value, index) => {
@@ -957,15 +961,17 @@ export default function HostedListingsPage({ mode = 'list' }) {
                 <div key={`profit-${index}`} style={profitBarWrapperStyle}>
                   <div
                     style={{ ...profitBarStyle, height: `${height}%`, opacity: value ? 1 : 0.3 }}
-                    title={`距离今天 ${index} 天：$${value.toFixed(0)}`}
+                    title={`${
+                      index === 0 ? 'Today' : `${index} day${index > 1 ? 's' : ''} ago`
+                    }: $${value.toFixed(0)}`}
                   />
-                  <span style={profitBarLabelStyle}>{index === 0 ? '今' : index}</span>
+                  <span style={profitBarLabelStyle}>{index === 0 ? 'Now' : index}</span>
                 </div>
               );
             })}
           </div>
         ) : (
-          <p style={mutedTextStyle}>最近 30 天暂无收益记录。</p>
+          <p style={mutedTextStyle}>No revenue recorded in the last 30 days.</p>
         )}
       </section>
 

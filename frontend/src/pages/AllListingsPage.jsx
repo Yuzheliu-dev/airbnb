@@ -63,7 +63,7 @@ const ensureNumber = (value) => {
 
 const formatAddress = (address = {}) => {
   const parts = [address.city, address.state, address.country].filter(Boolean);
-  return parts.length ? parts.join(', ') : '地点待更新';
+  return parts.length ? parts.join(', ') : 'Location to be confirmed';
 };
 
 export default function AllListingsPage() {
@@ -94,7 +94,7 @@ export default function AllListingsPage() {
       );
       setListings(detailed.filter((listing) => listing.published));
     } catch (err) {
-      setErrorMsg(err.message || '无法加载房源列表');
+      setErrorMsg(err.message || 'Unable to load listings.');
     } finally {
       setLoading(false);
     }
@@ -138,19 +138,19 @@ export default function AllListingsPage() {
       const min = ensureNumber(filters.bedroomsMin);
       const max = ensureNumber(filters.bedroomsMax);
       if (min !== null && max !== null && min > max) {
-        return '卧室数量的最小值不能大于最大值';
+        return 'Minimum bedrooms cannot exceed maximum.';
       }
     }
     if (filters.priceEnabled) {
       const min = ensureNumber(filters.priceMin);
       const max = ensureNumber(filters.priceMax);
       if (min !== null && max !== null && min > max) {
-        return '价格区间的最小值不能大于最大值';
+        return 'Minimum price cannot exceed maximum.';
       }
     }
     if (filters.dateEnabled) {
       if (filters.dateStart && filters.dateEnd && filters.dateStart > filters.dateEnd) {
-        return '请选择有效的起止日期';
+        return 'Please choose a valid date range.';
       }
     }
     return '';
@@ -257,20 +257,23 @@ export default function AllListingsPage() {
   const activeFilterChips = useMemo(() => {
     const chips = [];
     if (appliedFilters.bedroomsEnabled) {
-      const min = appliedFilters.bedroomsMin || '任意';
-      const max = appliedFilters.bedroomsMax || '任意';
-      chips.push(`卧室 ${min}-${max} (${appliedFilters.bedroomsOrder === 'desc' ? '多→少' : '少→多'})`);
+      const min = appliedFilters.bedroomsMin || 'Any';
+      const max = appliedFilters.bedroomsMax || 'Any';
+      const order = appliedFilters.bedroomsOrder === 'desc' ? 'High → Low' : 'Low → High';
+      chips.push(`Bedrooms ${min}-${max} (${order})`);
     }
     if (appliedFilters.priceEnabled) {
-      const min = appliedFilters.priceMin || '任意';
-      const max = appliedFilters.priceMax || '任意';
-      chips.push(`价格 ${min}-${max} (${appliedFilters.priceOrder === 'desc' ? '高→低' : '低→高'})`);
+      const min = appliedFilters.priceMin || 'Any';
+      const max = appliedFilters.priceMax || 'Any';
+      const order = appliedFilters.priceOrder === 'desc' ? 'High → Low' : 'Low → High';
+      chips.push(`Price ${min}-${max} (${order})`);
     }
     if (appliedFilters.dateEnabled && appliedFilters.dateStart && appliedFilters.dateEnd) {
-      chips.push(`日期 ${appliedFilters.dateStart} → ${appliedFilters.dateEnd}`);
+      chips.push(`Dates ${appliedFilters.dateStart} → ${appliedFilters.dateEnd}`);
     }
     if (appliedFilters.ratingEnabled) {
-      chips.push(`评分 ${appliedFilters.ratingOrder === 'desc' ? '高→低' : '低→高'}`);
+      const order = appliedFilters.ratingOrder === 'desc' ? 'High → Low' : 'Low → High';
+      chips.push(`Rating (${order})`);
     }
     return chips;
   }, [appliedFilters]);
@@ -279,16 +282,16 @@ export default function AllListingsPage() {
     <div style={basicContainerStyle}>
       <h1 style={titleStyle}>Explore stays</h1>
       {isAuthenticated && (
-        <p style={infoTextStyle}>你预订过的房源会被优先展示。</p>
+        <p style={infoTextStyle}>Listings you have booked appear at the top.</p>
       )}
       <form onSubmit={handleSearch} style={simpleFormStyle}>
         <label style={simpleLabelStyle}>
-          搜索标题 / 城市
+          Search title / city
           <input
             type="text"
             value={filterDraft.searchTerm}
             onChange={handleDraftChange('searchTerm')}
-            placeholder="Sydney / 海景 / Loft..."
+            placeholder="Sydney / Seaview / Loft..."
           />
         </label>
         <fieldset style={filterFieldsetStyle}>
@@ -298,11 +301,11 @@ export default function AllListingsPage() {
               checked={filterDraft.bedroomsEnabled}
               onChange={handleToggleChange('bedroomsEnabled')}
             />
-            按卧室数量
+            Filter by bedrooms
           </label>
           <div style={filterGridStyle}>
             <label style={filterGroupLabelStyle}>
-              最少
+              Min
               <input
                 type="number"
                 min="0"
@@ -312,7 +315,7 @@ export default function AllListingsPage() {
               />
             </label>
             <label style={filterGroupLabelStyle}>
-              最多
+              Max
               <input
                 type="number"
                 min="0"
@@ -322,14 +325,14 @@ export default function AllListingsPage() {
               />
             </label>
             <label style={filterGroupLabelStyle}>
-              排序
+              Sort order
               <select
                 value={filterDraft.bedroomsOrder}
                 onChange={handleDraftChange('bedroomsOrder')}
                 disabled={!filterDraft.bedroomsEnabled}
               >
-                <option value="asc">少 → 多</option>
-                <option value="desc">多 → 少</option>
+                <option value="asc">Low → High</option>
+                <option value="desc">High → Low</option>
               </select>
             </label>
           </div>
@@ -342,11 +345,11 @@ export default function AllListingsPage() {
               checked={filterDraft.priceEnabled}
               onChange={handleToggleChange('priceEnabled')}
             />
-            按价格区间
+            Filter by price range
           </label>
           <div style={filterGridStyle}>
             <label style={filterGroupLabelStyle}>
-              最低 (AUD)
+              Min (AUD)
               <input
                 type="number"
                 min="0"
@@ -356,7 +359,7 @@ export default function AllListingsPage() {
               />
             </label>
             <label style={filterGroupLabelStyle}>
-              最高 (AUD)
+              Max (AUD)
               <input
                 type="number"
                 min="0"
@@ -366,14 +369,14 @@ export default function AllListingsPage() {
               />
             </label>
             <label style={filterGroupLabelStyle}>
-              排序
+              Sort order
               <select
                 value={filterDraft.priceOrder}
                 onChange={handleDraftChange('priceOrder')}
                 disabled={!filterDraft.priceEnabled}
               >
-                <option value="asc">低 → 高</option>
-                <option value="desc">高 → 低</option>
+                <option value="asc">Low → High</option>
+                <option value="desc">High → Low</option>
               </select>
             </label>
           </div>
@@ -386,11 +389,11 @@ export default function AllListingsPage() {
               checked={filterDraft.dateEnabled}
               onChange={handleToggleChange('dateEnabled')}
             />
-            按可入住日期
+            Filter by availability dates
           </label>
           <div style={filterGridStyle}>
             <label style={filterGroupLabelStyle}>
-              起始日期
+              Start date
               <input
                 type="date"
                 value={filterDraft.dateStart}
@@ -399,7 +402,7 @@ export default function AllListingsPage() {
               />
             </label>
             <label style={filterGroupLabelStyle}>
-              结束日期
+              End date
               <input
                 type="date"
                 value={filterDraft.dateEnd}
@@ -408,14 +411,14 @@ export default function AllListingsPage() {
               />
             </label>
             <label style={filterGroupLabelStyle}>
-              排序
+              Sort order
               <select
                 value={filterDraft.dateOrder}
                 onChange={handleDraftChange('dateOrder')}
                 disabled={!filterDraft.dateEnabled}
               >
-                <option value="asc">最近上线优先</option>
-                <option value="desc">最远上线优先</option>
+                <option value="asc">Soonest availability first</option>
+                <option value="desc">Latest availability first</option>
               </select>
             </label>
           </div>
@@ -428,27 +431,27 @@ export default function AllListingsPage() {
               checked={filterDraft.ratingEnabled}
               onChange={handleToggleChange('ratingEnabled')}
             />
-            按评分排序
+            Sort by rating
           </label>
           <div style={filterGridStyle}>
             <label style={filterGroupLabelStyle}>
-              排序
+              Sort order
               <select
                 value={filterDraft.ratingOrder}
                 onChange={handleDraftChange('ratingOrder')}
                 disabled={!filterDraft.ratingEnabled}
               >
-                <option value="desc">高 → 低</option>
-                <option value="asc">低 → 高</option>
+                <option value="desc">High → Low</option>
+                <option value="asc">Low → High</option>
               </select>
             </label>
           </div>
         </fieldset>
 
         <div style={simpleButtonRowStyle}>
-          <button type="submit">应用筛选</button>
+          <button type="submit">Apply filters</button>
           <button type="button" onClick={handleReset}>
-            清空
+            Reset
           </button>
         </div>
       </form>
@@ -474,7 +477,7 @@ export default function AllListingsPage() {
                 />
                 {bookingMeta[listing.id] && (
                   <span style={statusPillStyle}>
-                    {bookingMeta[listing.id].status === 'accepted' ? '已接受订单' : '待确认'}
+                    {bookingMeta[listing.id].status === 'accepted' ? 'Accepted booking' : 'Pending'}
                   </span>
                 )}
               </div>
@@ -482,18 +485,18 @@ export default function AllListingsPage() {
                 <div style={cardHeaderStyle}>
                   <h3 style={cardTitleStyle}>{listing.title}</h3>
                   <span style={ratingStyle}>
-                    ⭐ {listing.rating ?? '暂无'}
+                    ⭐ {listing.rating ?? 'N/A'}
                     {listing.reviewCount ? ` (${listing.reviewCount})` : ''}
                   </span>
                 </div>
                 <p style={addressStyle}>{formatAddress(listing.address)}</p>
                 <div style={cardStatsRowStyle}>
-                  <span>{listing.metadata?.bedrooms ?? 0} 卧室</span>
-                  <span>{listing.metadata?.beds ?? 0} 床位</span>
-                  <span>{listing.metadata?.bathrooms ?? 0} 卫浴</span>
+                  <span>{listing.metadata?.bedrooms ?? 0} bedrooms</span>
+                  <span>{listing.metadata?.beds ?? 0} beds</span>
+                  <span>{listing.metadata?.bathrooms ?? 0} baths</span>
                 </div>
                 <div style={cardFooterRowStyle}>
-                  <strong>${listing.price} / 晚</strong>
+                  <strong>${listing.price} / night</strong>
                   <button
                     type="button"
                     style={detailButtonStyle}
@@ -505,7 +508,7 @@ export default function AllListingsPage() {
                       })
                     }
                   >
-                    查看详情
+                    View details
                   </button>
                 </div>
               </div>
@@ -513,7 +516,7 @@ export default function AllListingsPage() {
           ))}
         </div>
       ) : (
-        <p>暂无符合条件的房源。</p>
+        <p>No listings match your filters.</p>
       )}
     </div>
   );

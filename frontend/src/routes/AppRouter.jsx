@@ -177,9 +177,13 @@ function MainLayout({ children }) {
                 {notificationsOpen && (
                   <div style={notificationsPanelStyle}>
                     <div style={notificationsHeaderStyle}>
-                      <strong>通知</strong>
+                      <strong>Notifications</strong>
                       <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                        {notifications.length ? `共 ${notifications.length} 条` : '暂无'}
+                        {notifications.length
+                          ? `${notifications.length} notification${
+                              notifications.length > 1 ? 's' : ''
+                            }`
+                          : 'None yet'}
                       </span>
                     </div>
                     {notifications.length ? (
@@ -194,7 +198,7 @@ function MainLayout({ children }) {
                           >
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                               <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                {notification.type === 'host' ? '房东提醒' : '预订提醒'}
+                                {notification.type === 'host' ? 'Host alert' : 'Booking alert'}
                               </span>
                               <strong style={{ fontSize: '0.9rem' }}>{notification.message}</strong>
                               {notification.detail && (
@@ -208,7 +212,7 @@ function MainLayout({ children }) {
                               type="button"
                               style={notificationDismissButtonStyle}
                               onClick={() => dismissNotification(notification.id)}
-                              aria-label="移除通知"
+                              aria-label="Remove notification"
                             >
                               ×
                             </button>
@@ -216,7 +220,9 @@ function MainLayout({ children }) {
                         ))}
                       </ul>
                     ) : (
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>暂无通知</p>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>
+                        No notifications yet
+                      </p>
                     )}
                   </div>
                 )}

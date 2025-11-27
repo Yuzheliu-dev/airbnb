@@ -125,12 +125,12 @@ export function NotificationsProvider({ children }) {
     }
     try {
       const { listing } = await listingsApi.getListingById(idNumber);
-      const title = listing.title || `房源 #${idNumber}`;
+      const title = listing.title || `Listing #${idNumber}`;
       listingTitleCacheRef.current.set(idNumber, title);
       return title;
     } catch (err) {
       console.error('Failed to resolve listing title', err);
-      return `房源 #${idNumber}`;
+      return `Listing #${idNumber}`;
     }
   }, []);
 
@@ -175,8 +175,8 @@ export function NotificationsProvider({ children }) {
             const listingTitle = hostListingsRef.current.get(Number(booking.listingId));
             addNotification({
               type: 'host',
-              message: `新的预订请求 - ${listingTitle || `房源 #${booking.listingId}`}`,
-              detail: `${booking.owner} 请求 ${booking.dateRange?.start} → ${booking.dateRange?.end}`,
+              message: `New booking request - ${listingTitle || `Listing #${booking.listingId}`}`,
+              detail: `${booking.owner} requested ${booking.dateRange?.start} → ${booking.dateRange?.end}`,
             });
           }
 
@@ -191,8 +191,8 @@ export function NotificationsProvider({ children }) {
               type: 'guest',
               message:
                 booking.status === 'accepted'
-                  ? `预订已被房东接受 - ${listingTitle}`
-                  : `抱歉，预订被拒绝 - ${listingTitle}`,
+                  ? `Booking accepted by host - ${listingTitle}`
+                  : `Booking declined - ${listingTitle}`,
               detail: `${booking.dateRange?.start} → ${booking.dateRange?.end}`,
             });
           }

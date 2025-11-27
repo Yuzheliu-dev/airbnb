@@ -28,9 +28,9 @@ const statsCardStyle = {
 };
 
 const statusColors = {
-  pending: { bg: '#fef3c7', color: '#92400e', label: '待处理' },
-  accepted: { bg: '#dcfce7', color: '#166534', label: '已接受' },
-  declined: { bg: '#fee2e2', color: '#b91c1c', label: '已拒绝' },
+  pending: { bg: '#fef3c7', color: '#92400e', label: 'Pending' },
+  accepted: { bg: '#dcfce7', color: '#166534', label: 'Accepted' },
+  declined: { bg: '#fee2e2', color: '#b91c1c', label: 'Declined' },
 };
 
 const calculateNights = (range) => {
@@ -70,7 +70,7 @@ export default function HostedBookingManagementPage() {
         bookingsApi.getAllBookings(token),
       ]);
       if (listingData.owner !== email) {
-        throw new Error('只有房源拥有者才能查看预订。');
+        throw new Error('Only the listing owner can view bookings.');
       }
       setListing(listingData);
       const relevant = bookingData
@@ -81,7 +81,7 @@ export default function HostedBookingManagementPage() {
         );
       setBookings(relevant);
     } catch (err) {
-      setErrorMsg(err.message || '无法加载预订记录');
+      setErrorMsg(err.message || 'Unable to load bookings.');
     } finally {
       setLoading(false);
     }
@@ -99,14 +99,14 @@ export default function HostedBookingManagementPage() {
     try {
       if (action === 'accept') {
         await bookingsApi.acceptBooking(bookingId, token);
-        setSuccessMsg('已接受该预订请求。');
+        setSuccessMsg('Booking request accepted.');
       } else {
         await bookingsApi.declineBooking(bookingId, token);
-        setSuccessMsg('已拒绝该预订请求。');
+        setSuccessMsg('Booking request declined.');
       }
       await fetchData();
     } catch (err) {
-      setErrorMsg(err.message || '操作失败，请稍后再试');
+      setErrorMsg(err.message || 'Action failed. Please try again later.');
     } finally {
       setBusyMap((prev) => ({ ...prev, [bookingId]: false }));
     }
@@ -137,39 +137,39 @@ export default function HostedBookingManagementPage() {
   }, [listing, bookings]);
 
   if (!token) {
-    return <p style={{ marginTop: '2rem' }}>请登录后查看预订详情。</p>;
+    return <p style={{ marginTop: '2rem' }}>Please log in to view booking details.</p>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
       <button type="button" style={linkButtonStyle} onClick={() => navigate('/host/listings')}>
-        ← 返回托管房源
+        ← Back to hosted listings
       </button>
 
       <header style={cardStyle}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-          <h1 style={{ margin: 0 }}>预订管理</h1>
-          <p style={{ margin: 0, color: '#6b7280' }}>{listing?.title || '加载中...'}</p>
+          <h1 style={{ margin: 0 }}>Booking management</h1>
+          <p style={{ margin: 0, color: '#6b7280' }}>{listing?.title || 'Loading...'}</p>
         </div>
       </header>
 
       <section style={{ ...cardStyle, gap: '1rem' }}>
-        <h2 style={{ margin: 0 }}>概览</h2>
+        <h2 style={{ margin: 0 }}>Overview</h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem' }}>
           <div style={statsCardStyle}>
-            <span style={{ color: '#6b7280' }}>上线天数</span>
+            <span style={{ color: '#6b7280' }}>Days online</span>
             <strong style={{ fontSize: '1.4rem' }}>{stats.onlineDays}</strong>
           </div>
           <div style={statsCardStyle}>
-            <span style={{ color: '#6b7280' }}>已接受订单</span>
+            <span style={{ color: '#6b7280' }}>Accepted bookings</span>
             <strong style={{ fontSize: '1.4rem' }}>{stats.acceptedCount}</strong>
           </div>
           <div style={statsCardStyle}>
-            <span style={{ color: '#6b7280' }}>本年度预订天数</span>
+            <span style={{ color: '#6b7280' }}>Booked days this year</span>
             <strong style={{ fontSize: '1.4rem' }}>{stats.bookedDays}</strong>
           </div>
           <div style={statsCardStyle}>
-            <span style={{ color: '#6b7280' }}>本年度收益 (AUD)</span>
+            <span style={{ color: '#6b7280' }}>Earnings this year (AUD)</span>
             <strong style={{ fontSize: '1.4rem' }}>${stats.profit}</strong>
           </div>
         </div>
@@ -179,9 +179,9 @@ export default function HostedBookingManagementPage() {
       <ErrorNotification message={errorMsg} onClose={() => setErrorMsg('')} />
 
       <section style={cardStyle}>
-        <h2 style={{ margin: 0 }}>待处理预订</h2>
+        <h2 style={{ margin: 0 }}>Pending requests</h2>
         {loading ? (
-          <p>正在加载...</p>
+          <p>Loading...</p>
         ) : pendingBookings.length ? (
           <ul style={bookingListStyle}>
             {pendingBookings.map((booking) => (
@@ -191,9 +191,9 @@ export default function HostedBookingManagementPage() {
                     {new Date(booking.dateRange?.start || 0).toLocaleDateString()} →{' '}
                     {new Date(booking.dateRange?.end || 0).toLocaleDateString()}
                   </strong>
-                  <span>入住人：{booking.owner}</span>
-                  <span>总价：${booking.totalPrice}</span>
-                  <span>共 {calculateNights(booking.dateRange)} 晚</span>
+                  <span>Guest: {booking.owner}</span>
+                  <span>Total: ${booking.totalPrice}</span>
+                  <span>Total {calculateNights(booking.dateRange)} night{calculateNights(booking.dateRange) === 1 ? '' : 's'}</span>
                 </div>
                 <div style={bookingActionsStyle}>
                   <button
@@ -202,7 +202,7 @@ export default function HostedBookingManagementPage() {
                     disabled={busyMap[booking.id]}
                     onClick={() => handleBookingAction(booking.id, 'accept')}
                   >
-                    {busyMap[booking.id] ? '提交中...' : '接受'}
+                    {busyMap[booking.id] ? 'Submitting...' : 'Accept'}
                   </button>
                   <button
                     type="button"
@@ -210,21 +210,21 @@ export default function HostedBookingManagementPage() {
                     disabled={busyMap[booking.id]}
                     onClick={() => handleBookingAction(booking.id, 'decline')}
                   >
-                    拒绝
+                    Decline
                   </button>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <p style={{ color: '#6b7280' }}>暂无待处理请求。</p>
+          <p style={{ color: '#6b7280' }}>No pending requests.</p>
         )}
       </section>
 
       <section style={cardStyle}>
-        <h2 style={{ margin: 0 }}>全部预订记录</h2>
+        <h2 style={{ margin: 0 }}>All bookings</h2>
         {loading ? (
-          <p>正在加载...</p>
+          <p>Loading...</p>
         ) : historyBookings.length ? (
           <ul style={bookingListStyle}>
             {historyBookings.map((booking) => {
@@ -236,8 +236,8 @@ export default function HostedBookingManagementPage() {
                       {new Date(booking.dateRange?.start || 0).toLocaleDateString()} →{' '}
                       {new Date(booking.dateRange?.end || 0).toLocaleDateString()}
                     </strong>
-                    <span>入住人：{booking.owner}</span>
-                    <span>总价：${booking.totalPrice}</span>
+                    <span>Guest: {booking.owner}</span>
+                    <span>Total: ${booking.totalPrice}</span>
                   </div>
                   <span
                     style={{
@@ -256,7 +256,7 @@ export default function HostedBookingManagementPage() {
             })}
           </ul>
         ) : (
-          <p style={{ color: '#6b7280' }}>暂无历史记录。</p>
+          <p style={{ color: '#6b7280' }}>No booking history yet.</p>
         )}
       </section>
     </div>
