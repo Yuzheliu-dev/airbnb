@@ -168,3 +168,78 @@ export function NotificationsProvider({ children }) {
           const isHostListing = hostListingsRef.current.has(Number(booking.listingId));
 
           if (!initializedRef.current) {
+            continue;
+          }
+
+          if (!prevEntry && isHostListing && booking.status === 'pending') {
+            const listingTitle = hostListingsRef.current.get(Number(booking.listingId));
+            addNotification({
+              type: 'host',
+              message: `新的预订请求 - ${listingTitle || `房源 #${booking.listingId}`}`,
+              detail: `${booking.owner} 请求 ${booking.dateRange?.start} → ${booking.dateRange?.end}`,
+            });
+          }
+
+          if (
+            booking.owner === email &&
+            prevEntry &&
+            prevEntry.status !== booking.status &&
+            (booking.status === 'accepted' || booking.status === 'declined')
+          ) {
+            const listingTitle = await resolveListingTitle(booking.listingId);
+            addNotification({
+              type: 'guest',
+              message:
+                booking.status === 'accepted'
+                  ? `预订已被房东接受 - ${listingTitle}`
+                  : `抱歉，预订被拒绝 - ${listingTitle}`,
+              detail: `${booking.dateRange?.start} → ${booking.dateRange?.end}`,
+            });
+          }
+        }
+
+        bookingsSnapshotRef.current = nextSnapshot;
+        if (!initializedRef.current) {
+          initializedRef.current = true;
+        }
+      } catch (err) {
+        console.error('Notification polling failed', err);
+      }
+    };
+
+    refreshHostListings();
+    poll();
+    pollTimerRef.current = setInterval(poll, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, [isAuthenticated, token, email, refreshHostListings, addNotification, resolveListingTitle]);
+
+  const value = useMemo(
+    () => ({
+      notifications,
+      unreadCount,
+      markAllAsRead,
+      markAsRead,
+      dismissNotification,
+    }),
+    [notifications, unreadCount, markAllAsRead, markAsRead, dismissNotification],
+  );
+
+  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useNotifications() {
+  const ctx = useContext(NotificationsContext);
+  if (!ctx) {
+    throw new Error('useNotifications must be used within NotificationsProvider');
+  }
+  return ctx;
+}
+
